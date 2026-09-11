@@ -2083,3 +2083,98 @@
 </script>
 </body>
 </html>
+<!-- ============================================ -->
+<!-- إضافة لملف index.html الموجود عندك -->
+<!-- ضيف هذا HTML بمكان مناسب (مثلاً داخل صفحة المراسلات) -->
+<!-- ============================================ -->
+
+<div class="ai-draft-box">
+  <h3>صياغة رد رسمي تلقائي</h3>
+  <input id="entityNameInput" type="text"
+    placeholder="اسم الجهة المرسل إليها (مثال: وزارة الصحة)" />
+  <input id="entityTitleInput" type="text"
+    placeholder="لقب/منصب الجهة (مثال: السيد الوزير، دائرة، مواطن)" />
+  <textarea id="requestSummaryInput" rows="3"
+    placeholder="اكتب ملخص الطلب أو المراسلة هنا..."></textarea>
+  <select id="requestTypeSelect">
+    <option value="">-- نوع المراسلة (اختياري) --</option>
+    <option value="طلب موافقة">طلب موافقة</option>
+    <option value="استفسار">استفسار</option>
+    <option value="شكوى">شكوى</option>
+    <option value="دعوة">دعوة</option>
+  </select>
+  <button id="generateDraftBtn">توليد المسودة</button>
+  <div id="draftLoading" style="display:none;">جاري التوليد...</div>
+  <textarea id="draftOutput" rows="8" placeholder="المسودة راح تظهر هنا..."></textarea>
+  <button id="downloadWordBtn" style="display:none;">تحميل كملف Word</button>
+</div>
+
+<script>
+  // رابط الدالة الوسيطة المستضافة على Vercel
+  const BACKEND_URL = "https://secretary-beige-beta.vercel.app/api/draft-reply";
+
+  let currentDocxBase64 = null; // نخزن نسخة الملف الحالية للتحميل
+
+  document.getElementById("generateDraftBtn").addEventListener("click", async () => {
+    const requestSummary = document.getElementById("requestSummaryInput").value;
+    const requestType = document.getElementById("requestTypeSelect").value;
+    const entityName = document.getElementById("entityNameInput").value;
+    const entityTitle = document.getElementById("entityTitleInput").value;
+    const loadingEl = document.getElementById("draftLoading");
+    const outputEl = document.getElementById("draftOutput");
+    const downloadBtn = document.getElementById("downloadWordBtn");
+
+    if (!requestSummary.trim()) {
+      alert("لازم تكتب ملخص الطلب أول");
+      return;
+    }
+
+    loadingEl.style.display = "block";
+    outputEl.value = "";
+    downloadBtn.style.display = "none";
+
+    try {
+      const response = await fetch(BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestSummary, requestType, entityName, entityTitle }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "صار خطأ غير متوقع");
+      }
+
+      outputEl.value = result.draft;
+      currentDocxBase64 = result.docxBase64;
+      downloadBtn.style.display = "inline-block";
+    } catch (error) {
+      console.error(error);
+      alert("صار خطأ، حاول مرة ثانية: " + error.message);
+    } finally {
+      loadingEl.style.display = "none";
+    }
+  });
+
+  document.getElementById("downloadWordBtn").addEventListener("click", () => {
+    if (!currentDocxBase64) return;
+
+    // تحويل base64 لملف Word حقيقي وتحميله
+    const byteChars = atob(currentDocxBase64);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+      byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], {
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "رد-رسمي.docx";
+    link.click();
+    URL.revokeObjectURL(link.href);
+  });
+</script>
