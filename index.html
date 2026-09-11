@@ -2082,13 +2082,8 @@
 })();
 </script>
 </body>
-</html>
-<!-- ============================================ -->
-<!-- إضافة لملف index.html الموجود عندك -->
-<!-- ضيف هذا HTML بمكان مناسب (مثلاً داخل صفحة المراسلات) -->
-<!-- ============================================ -->
-
-<div class="ai-draft-box">
+  
+<div class="ai-draft-box" id="aiDraftBoxWrapper" style="display:none;">
   <h3>صياغة رد رسمي تلقائي</h3>
   <input id="entityNameInput" type="text"
     placeholder="اسم الجهة المرسل إليها (مثال: وزارة الصحة)" />
@@ -2177,5 +2172,15 @@
     link.click();
     URL.revokeObjectURL(link.href);
   });
+
+  // يراقب حالة تسجيل الدخول ويظهر/يخفي الصندوق تلقائياً
+  // (بما إن تطبيقك يبني الصفحة ديناميكياً، هذي أسهل طريقة نتأكد الصندوق يظهر بس بعد الدخول)
+  setInterval(() => {
+    const isLoggedIn = !!document.querySelector('[data-action="logout"]');
+    const wrapper = document.getElementById("aiDraftBoxWrapper");
+    if (wrapper) {
+      wrapper.style.display = isLoggedIn ? "block" : "none";
+    }
+  }, 500);
 </script>
-html
+</html>
