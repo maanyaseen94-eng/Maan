@@ -2082,33 +2082,49 @@
 })();
 </script>
 </body>
- <div class="ai-draft-box" id="aiDraftBoxWrapper" style="display:none;">
-  <h3>صياغة رد رسمي تلقائي</h3>
+ <div id="aiDraftBoxWrapper" style="display:none;">
 
-  <div style="margin-bottom:10px;">
-    <label>رفع صورة أو PDF للمراسلة (اختياري):</label><br>
-    <input type="file" id="letterFileInput" accept="image/*,.pdf" />
-    <button id="extractBtn" type="button">استخراج التفاصيل من الملف</button>
-    <div id="extractLoading" style="display:none;">جاري قراءة الملف...</div>
+  <!-- الزر الصغير اللي يفتح/يسكر النموذج -->
+  <button id="toggleDraftBoxBtn" type="button"
+    style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid #123128;background:#123128;color:#fff;cursor:pointer;font-size:14px;">
+    <span style="font-size:18px;line-height:1;">+</span> كتاب رسمي
+  </button>
+
+  <div class="ai-draft-box" id="draftPanelContent" style="display:none;margin-top:10px;">
+    <h3>صياغة الكتاب الرسمي</h3>
+
+    <div style="margin-bottom:10px;">
+      <label>رفع صورة أو PDF للمراسلة (اختياري):</label><br>
+      <input type="file" id="letterFileInput" accept="image/*,.pdf" />
+      <button id="extractBtn" type="button">استخراج التفاصيل من الملف</button>
+      <div id="extractLoading" style="display:none;">جاري قراءة الملف...</div>
+    </div>
+
+    <input id="entityNameInput" type="text"
+      placeholder="اسم الجهة المرسل إليها (مثال: وزارة الصحة)" />
+    <input id="entityTitleInput" type="text"
+      placeholder="لقب/منصب الجهة (مثال: السيد الوزير، دائرة، مواطن)" />
+    <div id="templateMatchNote" style="display:none;font-size:12px;color:#123128;margin:4px 0;">
+      ✓ تم تعبئة المخاطبة من قالب محفوظ لهذي الجهة
+    </div>
+    <button id="saveTemplateBtn" type="button" style="font-size:12px;margin-bottom:8px;">
+      حفظ هذي المخاطبة كقالب لهذي الجهة
+    </button>
+
+    <textarea id="requestSummaryInput" rows="3"
+      placeholder="اكتب ملخص الطلب أو المراسلة هنا..."></textarea>
+    <select id="requestTypeSelect">
+      <option value="">-- نوع المراسلة (اختياري) --</option>
+      <option value="طلب موافقة">طلب موافقة</option>
+      <option value="استفسار">استفسار</option>
+      <option value="شكوى">شكوى</option>
+      <option value="دعوة">دعوة</option>
+    </select>
+    <button id="generateDraftBtn">توليد المسودة</button>
+    <div id="draftLoading" style="display:none;">جاري التوليد...</div>
+    <textarea id="draftOutput" rows="8" placeholder="المسودة راح تظهر هنا..."></textarea>
+    <button id="downloadWordBtn" style="display:none;">تحميل كملف Word</button>
   </div>
-
-  <input id="entityNameInput" type="text"
-    placeholder="اسم الجهة المرسل إليها (مثال: وزارة الصحة)" />
-  <input id="entityTitleInput" type="text"
-    placeholder="لقب/منصب الجهة (مثال: السيد الوزير، دائرة، مواطن)" />
-  <textarea id="requestSummaryInput" rows="3"
-    placeholder="اكتب ملخص الطلب أو المراسلة هنا..."></textarea>
-  <select id="requestTypeSelect">
-    <option value="">-- نوع المراسلة (اختياري) --</option>
-    <option value="طلب موافقة">طلب موافقة</option>
-    <option value="استفسار">استفسار</option>
-    <option value="شكوى">شكوى</option>
-    <option value="دعوة">دعوة</option>
-  </select>
-  <button id="generateDraftBtn">توليد المسودة</button>
-  <div id="draftLoading" style="display:none;">جاري التوليد...</div>
-  <textarea id="draftOutput" rows="8" placeholder="المسودة راح تظهر هنا..."></textarea>
-  <button id="downloadWordBtn" style="display:none;">تحميل كملف Word</button>
 </div>
 
 <script>
@@ -2117,6 +2133,68 @@
   const EXTRACT_URL = "https://secretary-beige-beta.vercel.app/api/extract-details";
 
   let currentDocxBase64 = null; // نخزن نسخة الملف الحالية للتحميل
+  let ministryTemplates = {}; // ذاكرة مؤقتة لقوالب المخاطبة المحفوظة (تُحمّل من Firestore)
+
+  // فتح/سكر نموذج الكتابة
+  document.getElementById("toggleDraftBoxBtn").addEventListener("click", () => {
+    const panel = document.getElementById("draftPanelContent");
+    const isOpen = panel.style.display === "block";
+    panel.style.display = isOpen ? "none" : "block";
+  });
+
+  // تحميل كل القوالب المحفوظة من Firestore مرة وحدة عند فتح الصفحة
+  function loadMinistryTemplates() {
+    try {
+      const db = firebase.firestore();
+      db.collection("ministryTemplates").get().then((snapshot) => {
+        snapshot.forEach((doc) => {
+          ministryTemplates[doc.id] = doc.data().entityTitle || "";
+        });
+      }).catch((err) => console.error("خطأ بتحميل القوالب:", err));
+    } catch (err) {
+      console.error("Firestore غير متاح:", err);
+    }
+  }
+  loadMinistryTemplates();
+
+  // كل ما يتغير اسم الجهة، نتأكد هل فيه قالب محفوظ لها
+  document.getElementById("entityNameInput").addEventListener("input", (e) => {
+    const name = e.target.value.trim();
+    const noteEl = document.getElementById("templateMatchNote");
+    if (name && ministryTemplates[name]) {
+      document.getElementById("entityTitleInput").value = ministryTemplates[name];
+      noteEl.style.display = "block";
+    } else {
+      noteEl.style.display = "none";
+    }
+  });
+
+  // حفظ قالب جديد (أو تحديث قالب موجود) لهذي الجهة
+  document.getElementById("saveTemplateBtn").addEventListener("click", () => {
+    const entityName = document.getElementById("entityNameInput").value.trim();
+    const entityTitle = document.getElementById("entityTitleInput").value.trim();
+
+    if (!entityName || !entityTitle) {
+      alert("لازم تكتب اسم الجهة ولقبها أول قبل الحفظ كقالب");
+      return;
+    }
+
+    try {
+      const db = firebase.firestore();
+      db.collection("ministryTemplates").doc(entityName).set({ entityTitle })
+        .then(() => {
+          ministryTemplates[entityName] = entityTitle;
+          alert("تم حفظ القالب بنجاح لهذي الجهة");
+        })
+        .catch((err) => {
+          console.error(err);
+          alert("صار خطأ أثناء حفظ القالب");
+        });
+    } catch (err) {
+      console.error(err);
+      alert("صار خطأ أثناء حفظ القالب");
+    }
+  });
 
   document.getElementById("extractBtn").addEventListener("click", async () => {
     const fileInput = document.getElementById("letterFileInput");
@@ -2153,8 +2231,18 @@
 
       // تعبئة الحقول تلقائياً بالمعلومات المستخرجة (تقدر تراجعها وتعدلها قبل التوليد)
       document.getElementById("entityNameInput").value = result.entityName || "";
-      document.getElementById("entityTitleInput").value = result.entityTitle || "";
       document.getElementById("requestSummaryInput").value = result.requestSummary || "";
+
+      // إذا فيه قالب محفوظ لهذي الجهة، نستخدمه بدل ما Claude يخمّن
+      const savedTitle = ministryTemplates[(result.entityName || "").trim()];
+      const noteEl = document.getElementById("templateMatchNote");
+      if (savedTitle) {
+        document.getElementById("entityTitleInput").value = savedTitle;
+        noteEl.style.display = "block";
+      } else {
+        document.getElementById("entityTitleInput").value = result.entityTitle || "";
+        noteEl.style.display = "none";
+      }
 
       const typeSelect = document.getElementById("requestTypeSelect");
       const matchingOption = Array.from(typeSelect.options).find(
@@ -2232,8 +2320,7 @@
     URL.revokeObjectURL(link.href);
   });
 
-  // يراقب حالة تسجيل الدخول ويظهر/يخفي الصندوق تلقائياً
-  // (بما إن تطبيقك يبني الصفحة ديناميكياً، هذي أسهل طريقة نتأكد الصندوق يظهر بس بعد الدخول)
+  // يراقب حالة تسجيل الدخول ويظهر/يخفي زر "+ كتاب رسمي" تلقائياً
   setInterval(() => {
     const isLoggedIn = !!document.querySelector('[data-action="logout"]');
     const wrapper = document.getElementById("aiDraftBoxWrapper");
