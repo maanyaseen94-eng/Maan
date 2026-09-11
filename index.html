@@ -2082,9 +2082,16 @@
 })();
 </script>
 </body>
-  
-<div class="ai-draft-box" id="aiDraftBoxWrapper" style="display:none;">
+ <div class="ai-draft-box" id="aiDraftBoxWrapper" style="display:none;">
   <h3>صياغة رد رسمي تلقائي</h3>
+
+  <div style="margin-bottom:10px;">
+    <label>رفع صورة أو PDF للمراسلة (اختياري):</label><br>
+    <input type="file" id="letterFileInput" accept="image/*,.pdf" />
+    <button id="extractBtn" type="button">استخراج التفاصيل من الملف</button>
+    <div id="extractLoading" style="display:none;">جاري قراءة الملف...</div>
+  </div>
+
   <input id="entityNameInput" type="text"
     placeholder="اسم الجهة المرسل إليها (مثال: وزارة الصحة)" />
   <input id="entityTitleInput" type="text"
@@ -2107,8 +2114,60 @@
 <script>
   // رابط الدالة الوسيطة المستضافة على Vercel
   const BACKEND_URL = "https://secretary-beige-beta.vercel.app/api/draft-reply";
+  const EXTRACT_URL = "https://secretary-beige-beta.vercel.app/api/extract-details";
 
   let currentDocxBase64 = null; // نخزن نسخة الملف الحالية للتحميل
+
+  document.getElementById("extractBtn").addEventListener("click", async () => {
+    const fileInput = document.getElementById("letterFileInput");
+    const extractLoadingEl = document.getElementById("extractLoading");
+    const file = fileInput.files[0];
+
+    if (!file) {
+      alert("لازم تختار ملف أول");
+      return;
+    }
+
+    extractLoadingEl.style.display = "block";
+
+    try {
+      // نحول الملف لصيغة base64 عشان نرسله للخادم
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const response = await fetch(EXTRACT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileBase64: base64, mediaType: file.type }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "صار خطأ غير متوقع");
+      }
+
+      // تعبئة الحقول تلقائياً بالمعلومات المستخرجة (تقدر تراجعها وتعدلها قبل التوليد)
+      document.getElementById("entityNameInput").value = result.entityName || "";
+      document.getElementById("entityTitleInput").value = result.entityTitle || "";
+      document.getElementById("requestSummaryInput").value = result.requestSummary || "";
+
+      const typeSelect = document.getElementById("requestTypeSelect");
+      const matchingOption = Array.from(typeSelect.options).find(
+        (opt) => opt.value === result.requestType
+      );
+      typeSelect.value = matchingOption ? result.requestType : "";
+    } catch (error) {
+      console.error(error);
+      alert("صار خطأ أثناء قراءة الملف: " + error.message);
+    } finally {
+      extractLoadingEl.style.display = "none";
+    }
+  });
 
   document.getElementById("generateDraftBtn").addEventListener("click", async () => {
     const requestSummary = document.getElementById("requestSummaryInput").value;
