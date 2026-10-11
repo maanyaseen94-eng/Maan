@@ -127,6 +127,29 @@ label.f input,label.f select,label.f textarea{color:var(--ink);font-size:.95rem}
 .toggle button[aria-pressed="true"][data-v="reward"]{background:var(--good);color:var(--surface);border-color:var(--good)}
 .toggle button[aria-pressed="true"][data-v="penalty"]{background:var(--bad);color:var(--surface);border-color:var(--bad)}
 .toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));inset-inline:16px;margin:auto;max-width:360px;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;text-align:center;z-index:30;font-weight:500}
+.reg-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+table.reg{border-collapse:collapse;font-size:.8rem;font-variant-numeric:tabular-nums;min-width:100%}
+table.reg th,table.reg td{border:1px solid var(--line);padding:5px 6px;text-align:center;white-space:nowrap}
+table.reg thead th{background:var(--raise);font-weight:600;color:var(--muted);font-size:.72rem;line-height:1.3}
+table.reg thead th b{display:block;font-size:.85rem;color:var(--ink)}
+table.reg .nm{position:sticky;right:0;background:var(--surface);text-align:right;font-weight:600;color:var(--ink);z-index:1;min-width:9rem}
+table.reg thead .nm{background:var(--raise)}
+table.reg td.off,table.reg th.off{background:var(--raise);color:var(--muted)}
+table.reg th.td{outline:2px solid var(--accent);outline-offset:-2px}
+table.reg .c-present{color:var(--good);font-weight:700} table.reg .c-late{color:var(--warn);font-weight:700}
+table.reg .c-absent{color:var(--bad);font-weight:700;background:var(--bad-soft)} table.reg .c-leave{color:var(--info);font-weight:700}
+table.reg .c-none{color:var(--line)}
+table.reg .tot{font-weight:700;background:var(--raise)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legend b{font-weight:700}
+.banner{background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;font-weight:600}
+.banner.off{background:var(--raise);color:var(--muted);border:1px dashed var(--line)}
+.days{display:flex;gap:6px;flex-wrap:wrap}
+.days button{border:1px solid var(--line);background:var(--raise);border-radius:10px;padding:8px 12px;font-weight:600;cursor:pointer;color:var(--muted)}
+.days button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tm{direction:ltr;display:inline-block;font-variant-numeric:tabular-nums}
+input[type=time]{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.hol{display:flex;gap:6px;flex-wrap:wrap}
 @media (max-width:620px){
   .sum{grid-template-columns:repeat(3,minmax(0,1fr))}
   .row{grid-template-columns:minmax(0,1fr)}
@@ -169,10 +192,14 @@ const PREFIX='dawam_';
 const DEF_RULES={present:5,late:2,absent:-10,leave:0};
 const KIND={present:{l:'حاضر',c:'good'},late:{l:'متأخر',c:'warn'},absent:{l:'غائب',c:'bad'},leave:{l:'إجازة',c:'info'},reward:{l:'مكافأة',c:'good'},penalty:{l:'عقوبة',c:'bad'}};
 const ATT=['present','late','absent','leave'];
-const ROLES={admin:{l:'مدير النظام',c:'acc',d:'كل الصلاحيات: الموظفون، المستخدمون، لائحة النقاط، حذف القيود'},recorder:{l:'مسجّل دوام',c:'gold',d:'تسجيل الحضور والغياب والمكافآت والعقوبات'},viewer:{l:'اطلاع فقط',c:'muted',d:'يرى الحضور والترتيب والسجل دون تعديل'}};
-const TABS=[['day','الدوام اليومي'],['points','النقاط والترتيب'],['log','السجل'],['staff','الموظفون','admin'],['users','المستخدمون','admin'],['rules','لائحة النقاط','admin']];
+const ROLES={admin:{l:'مدير النظام',c:'acc',d:'كل الصلاحيات: الموظفون، المستخدمون، لائحة النقاط، أيام وأوقات الدوام، حذف القيود'},recorder:{l:'مسجّل دوام',c:'gold',d:'تسجيل الحضور والغياب والمكافآت والعقوبات، وتحديد أيام وأوقات الدوام'},viewer:{l:'اطلاع فقط',c:'muted',d:'يرى الحضور والترتيب والسجل دون تعديل'}};
+const TABS=[['day','الدوام اليومي'],['register','السجل الشهري'],['points','النقاط والترتيب'],['log','القيود'],['sched','أيام الدوام','rec'],['staff','الموظفون','admin'],['users','المستخدمون','admin'],['rules','لائحة النقاط','admin']];
+const WD=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const WDS=['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+const CODE={present:'ح',late:'ت',absent:'غ',leave:'إ'};
+const DEF_SCHED={days:[true,true,true,true,true,true,true],start:'17:00',end:'22:00',grace:15,holidays:[],extra:[]};
 
-const S={emps:[],logs:[],users:[],rules:{...DEF_RULES},date:today(),tab:'day',logEmp:'',logMonth:today().slice(0,7),
+const S={emps:[],logs:[],users:[],rules:{...DEF_RULES},sched:{...DEF_SCHED},date:today(),tab:'day',logEmp:'',logMonth:today().slice(0,7),regMonth:today().slice(0,7),regOffice:'',regQ:'',regFilter:'',
   me:null,loaded:{emps:false,logs:false,users:false}};
 let db;
 const col=n=>db.collection(PREFIX+n);
@@ -190,6 +217,12 @@ const empName=id=>(S.emps.find(x=>x.id===id)||{name:'موظف محذوف'}).name
 const activeEmps=()=>S.emps.filter(e=>!e.archived).sort((a,b)=>a.name.localeCompare(b.name,'ar'));
 const balance=id=>S.logs.reduce((s,l)=>l.emp===id?s+(Number(l.pts)||0):s,0);
 const attFor=(id,date)=>S.logs.find(l=>l.id==='att_'+date+'_'+id);
+const wday=ds=>{const [y,m,d]=ds.split('-').map(Number);return new Date(y,m-1,d).getDay()};
+const isWork=ds=>{const sc=S.sched;if((sc.extra||[]).includes(ds))return true;if((sc.holidays||[]).includes(ds))return false;return !!(sc.days||DEF_SCHED.days)[wday(ds)]};
+const mins=hm=>{const [h,m]=(hm||'0:0').split(':').map(Number);return h*60+m};
+const nowHM=()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+function t12(hm){if(!hm)return '';let [h,m]=hm.split(':').map(Number);const p=h>=12?'م':'ص';h=h%12||12;return h+':'+String(m).padStart(2,'0')+' '+p}
+const hours=()=>t12(S.sched.start)+' – '+t12(S.sched.end);
 const isAdmin=()=>S.me&&S.me.role==='admin';
 const canRecord=()=>S.me&&(S.me.role==='admin'||S.me.role==='recorder');
 async function hash(u,p){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('dawam|'+u.toLowerCase()+'|'+p));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
@@ -201,18 +234,77 @@ function fail(e){console.error(e);toast(e&&e.code==='permission-denied'?'قاع�
 
 /* ===== كتابة ===== */
 async function setAtt(emp,kind){
-  if(!canRecord())return;
+  if(!canRecord()||!isWork(S.date))return;
   const id='att_'+S.date+'_'+emp;const cur=attFor(emp,S.date);
   try{
-    if(cur&&cur.kind===kind) await col('logs').doc(id).delete();
-    else await col('logs').doc(id).set({emp,kind,pts:Number(S.rules[kind])||0,date:S.date,note:'',...stamp()});
+    if(cur&&cur.kind===kind){await col('logs').doc(id).delete();return}
+    let k=kind,time='';
+    if((k==='present'||k==='late')&&S.date===today()){
+      time=nowHM();
+      if(k==='present'&&mins(time)>mins(S.sched.start)+(Number(S.sched.grace)||0)){k='late';toast('سُجّل متأخراً: الحضور '+t12(time)+' بعد بداية الدوام '+t12(S.sched.start))}
+    }
+    await col('logs').doc(id).set({emp,kind:k,pts:Number(S.rules[k])||0,date:S.date,time,note:'',...stamp()});
   }catch(e){fail(e)}
 }
 async function markAllPresent(){
+  if(!isWork(S.date))return;
   const todo=activeEmps().filter(e=>!attFor(e.id,S.date));
-  const batch=db.batch();
-  todo.forEach(e=>batch.set(col('logs').doc('att_'+S.date+'_'+e.id),{emp:e.id,kind:'present',pts:Number(S.rules.present)||0,date:S.date,note:'',...stamp()}));
+  const batch=db.batch();const time=S.date===today()?nowHM():'';
+  todo.forEach(e=>batch.set(col('logs').doc('att_'+S.date+'_'+e.id),{emp:e.id,kind:'present',pts:Number(S.rules.present)||0,date:S.date,time,note:'',...stamp()}));
   try{await batch.commit();toast('سُجّل حضور '+num(todo.length)+' موظف')}catch(e){fail(e)}
+}
+async function saveSched(patch){
+  try{await col('config').doc('schedule').set({...S.sched,...patch})}catch(e){fail(e);return false}
+  return true;
+}
+async function toggleDate(ds){
+  const sc=S.sched;let holidays=[...(sc.holidays||[])],extra=[...(sc.extra||[])];
+  if(isWork(ds)){if(extra.includes(ds))extra=extra.filter(x=>x!==ds);else holidays.push(ds)}
+  else{if(holidays.includes(ds))holidays=holidays.filter(x=>x!==ds);else extra.push(ds)}
+  if(await saveSched({holidays:holidays.sort(),extra:extra.sort()}))toast(isWorkAfter(ds,holidays,extra)?'أصبح '+fmtDate(ds)+' يوم دوام':'أصبح '+fmtDate(ds)+' يوم عطلة');
+}
+function isWorkAfter(ds,h,x){if(x.includes(ds))return true;if(h.includes(ds))return false;return !!(S.sched.days||DEF_SCHED.days)[wday(ds)]}
+function monthDays(ym){const [y,m]=ym.split('-').map(Number);const n=new Date(y,m,0).getDate();return Array.from({length:n},(_,i)=>ym+'-'+String(i+1).padStart(2,'0'))}
+const offices=()=>[...new Set(S.emps.map(e=>(e.office||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ar'));
+const sumPts=a=>a.reduce((s,l)=>s+(Number(l.pts)||0),0);
+function regData(ym){
+  const days=monthDays(ym);const t=today();const q=(S.regQ||'').trim();
+  let emps=S.emps.filter(e=>!e.archived||S.logs.some(l=>l.emp===e.id&&(l.date||'').startsWith(ym)));
+  if(S.regOffice)emps=emps.filter(e=>(e.office||'').trim()===S.regOffice);
+  if(q)emps=emps.filter(e=>(e.name+' '+(e.title||'')+' '+(e.office||'')).includes(q));
+  emps.sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+  let rows=emps.map(e=>{
+    const c={present:0,late:0,absent:0,leave:0};let due=0;
+    const cells=days.map(ds=>{const a=attFor(e.id,ds);const w=isWork(ds);if(a&&c[a.kind]!=null)c[a.kind]++;if(w&&ds<=t)due++;return {ds,w,a}});
+    const rec=c.present+c.late+c.absent+c.leave;const base=due-c.leave;
+    const ml=S.logs.filter(l=>l.emp===e.id&&(l.date||'').startsWith(ym));const rw=ml.filter(l=>l.kind==='reward'),pn=ml.filter(l=>l.kind==='penalty');
+    return {e,cells,c,due,missing:Math.max(0,due-rec),rate:base>0?Math.round((c.present+c.late)/base*100):null,mpts:sumPts(ml),bal:balance(e.id),rw:rw.length,rwp:sumPts(rw),pn:pn.length,pnp:sumPts(pn),logs:ml};
+  });
+  const f=S.regFilter;
+  if(f)rows=rows.filter(r=>f==='absent'?r.c.absent>0:f==='late'?r.c.late>0:f==='missing'?r.missing>0:f==='penalty'?r.pn>0:f==='clean'?(r.due>0&&!r.missing&&!r.c.absent&&!r.c.late):true);
+  return {days,emps:rows};
+}
+function loadXLSX(){
+  if(window.XLSX)return Promise.resolve(window.XLSX);
+  return new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=()=>ok(window.XLSX);s.onerror=no;document.head.appendChild(s)});
+}
+async function exportXLSX(){
+  const {days,emps}=regData(S.regMonth);
+  if(!emps.length){toast('لا يوجد موظفون ضمن الفلتر الحالي');return}
+  toast('جارٍ تجهيز ملف Excel…');
+  let X;try{X=await loadXLSX()}catch(e){toast('تعذّر تحميل أداة Excel، تحقق من الاتصال بالإنترنت');return}
+  const sheet=(rows,widths)=>{const ws=X.utils.aoa_to_sheet(rows);ws['!autofilter']={ref:ws['!ref']};ws['!cols']=widths.map(w=>({wch:w}));return ws};
+  const sum=[['ت','الموظف','العنوان الوظيفي','المكتب','الحالة','أيام الدوام المنقضية','حضور','تأخر','غياب','إجازة','غير مسجل','نسبة الحضور %','عدد المكافآت','نقاط المكافآت','عدد العقوبات','نقاط العقوبات','نقاط الشهر','الرصيد الكلي'],
+    ...emps.map((r,i)=>[i+1,r.e.name,r.e.title||'',r.e.office||'',r.e.archived?'مؤرشف':'في الخدمة',r.due,r.c.present,r.c.late,r.c.absent,r.c.leave,r.missing,r.rate??'',r.rw,r.rwp,r.pn,r.pnp,r.mpts,r.bal])];
+  const grid=[['الموظف','المكتب',...days.map(d=>Number(d.slice(8))+' '+WDS[wday(d)])],
+    ...emps.map(r=>[r.e.name,r.e.office||'',...r.cells.map(x=>x.a?(KIND[x.a.kind]?.l||'')+(x.a.time?' '+t12(x.a.time):''):(x.w?(x.ds<=today()?'غير مسجل':''):'عطلة'))])];
+  const det=[['التاريخ','اليوم','الموظف','العنوان الوظيفي','المكتب','النوع','وقت الحضور','النقاط','السبب','سجّله'],
+    ...emps.flatMap(r=>r.logs.map(l=>[l.date,WD[wday(l.date)],r.e.name,r.e.title||'',r.e.office||'',KIND[l.kind]?.l||l.kind,l.time?t12(l.time):'',Number(l.pts)||0,l.note||'',l.byName||''])).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))||String(a[2]).localeCompare(String(b[2]),'ar'))];
+  const wb=X.utils.book_new();wb.Workbook={Views:[{RTL:true}]};
+  X.utils.book_append_sheet(wb,sheet(sum,[5,24,18,16,10,12,7,7,7,7,9,12,10,11,10,11,10,11]),'ملخص الشهر');
+  X.utils.book_append_sheet(wb,sheet(grid,[24,16,...days.map(()=>11)]),'الحضور اليومي');
+  X.utils.book_append_sheet(wb,sheet(det,[11,10,24,18,16,10,11,8,34,16]),'تفاصيل القيود');
+  X.writeFile(wb,'سجل-الدوام-'+S.regMonth+'.xlsx');
 }
 
 /* ===== نوافذ ===== */
@@ -369,12 +461,51 @@ function viewDay(){
       ${S.date!==today()?'<button class="btn sm" data-act="today">اليوم</button>':''}
     </div><strong style="font-family:var(--f-display);font-weight:500">${esc(fmtDate(S.date))}</strong></div>`;
   h+=`<div class="sum"><div class="g"><b>${num(cnt.present)}</b><span>حاضر</span></div><div class="w"><b>${num(cnt.late)}</b><span>متأخر</span></div><div class="r"><b>${num(cnt.absent)}</b><span>غائب</span></div><div class="i"><b>${num(cnt.leave)}</b><span>إجازة</span></div><div><b>${num(un)}</b><span>لم يُسجَّل</span></div></div>`;
+  const work=isWork(S.date);
+  h+=work
+    ?`<div class="banner"><span>يوم دوام · ${WD[wday(S.date)]} · من <span class="tm">${esc(t12(S.sched.start))}</span> إلى <span class="tm">${esc(t12(S.sched.end))}</span></span>${canRecord()?'<button class="btn sm" data-act="toggleday">جعله يوم عطلة</button>':''}</div>`
+    :`<div class="banner off"><span>يوم عطلة · ${WD[wday(S.date)]} · لا يُسجَّل فيه حضور أو غياب</span>${canRecord()?'<button class="btn sm" data-act="toggleday">جعله يوم دوام</button>':''}</div>`;
   if(!emps.length)return h+noStaff();
-  if(un&&canRecord())h+=`<div class="bar"><p class="hint">اضغط الحالة مرة ثانية لإلغائها. النقاط تُحتسب حسب اللائحة وقت التسجيل.</p><button class="btn sm" data-act="allpresent">تسجيل الباقين حضوراً (${num(un)})</button></div>`;
+  if(!work)return h;
+  if(un&&canRecord())h+=`<div class="bar"><p class="hint">اضغط الحالة مرة ثانية لإلغائها. الحضور بعد ${esc(t12(S.sched.start))} بأكثر من ${num(Number(S.sched.grace)||0)} دقيقة يُسجَّل تأخيراً تلقائياً.</p><button class="btn sm" data-act="allpresent">تسجيل الباقين حضوراً (${num(un)})</button></div>`;
   h+='<div class="list">'+emps.map(e=>{const a=attFor(e.id,S.date);const b=balance(e.id);
-    return `<div class="row"><div class="who"><b>${esc(e.name)}</b><span>${esc([e.title,e.office].filter(Boolean).join(' · ')||'—')}</span> <span class="chip ${b<0?'bad':'gold'}">${num(b)} نقطة</span>${a&&a.byName?` <span class="hint">· سجّله ${esc(a.byName)}</span>`:''}</div>
+    return `<div class="row"><div class="who"><b>${esc(e.name)}</b><span>${esc([e.title,e.office].filter(Boolean).join(' · ')||'—')}</span> <span class="chip ${b<0?'bad':'gold'}">${num(b)} نقطة</span>${a&&a.time?` <span class="chip muted">وصل <span class="tm">${esc(t12(a.time))}</span></span>`:''}${a&&a.byName?` <span class="hint">· سجّله ${esc(a.byName)}</span>`:''}</div>
       <div class="seg">${ATT.map(k=>`<button class="${KIND[k].c}" aria-pressed="${!!(a&&a.kind===k)}" data-att="${k}" data-emp="${esc(e.id)}" ${dis}>${KIND[k].l} <span class="pts" style="opacity:.75">${signed(Number(S.rules[k])||0)}</span></button>`).join('')}</div></div>`}).join('')+'</div>';
   return h;
+}
+function viewRegister(){
+  const {days,emps}=regData(S.regMonth);const t=today();
+  let h=`<div class="bar"><div class="sec"><h2>السجل الشهري</h2><p class="hint">حضور وغياب ونقاط كل الموظفين لأيام الشهر. أوقات الدوام ${esc(hours())}.</p></div><button class="btn primary" data-act="csv">تصدير Excel</button></div>`;
+  h+=`<div class="datepick"><input type="month" id="rmon" value="${S.regMonth}" aria-label="الشهر">
+    <select id="roff" aria-label="المكتب"><option value="">كل المكاتب</option>${offices().map(o=>`<option ${S.regOffice===o?'selected':''}>${esc(o)}</option>`).join('')}</select>
+    <select id="rflt" aria-label="تصفية"><option value="">كل الموظفين</option>${[['absent','لديهم غياب'],['late','لديهم تأخير'],['missing','لديهم أيام غير مسجلة'],['penalty','لديهم عقوبات'],['clean','دوام كامل بلا غياب أو تأخير']].map(([v,l])=>`<option value="${v}" ${S.regFilter===v?'selected':''}>${l}</option>`).join('')}</select>
+    <input type="text" id="rq" value="${esc(S.regQ)}" placeholder="بحث بالاسم أو العنوان" aria-label="بحث">
+    ${S.regOffice||S.regFilter||S.regQ?'<button class="btn sm" data-act="rclear">مسح الفلتر</button>':''}</div>`;
+  h+=`<div class="legend"><span><b style="color:var(--good)">ح</b> حاضر</span><span><b style="color:var(--warn)">ت</b> متأخر</span><span><b style="color:var(--bad)">غ</b> غائب</span><span><b style="color:var(--info)">إ</b> إجازة</span><span><b>·</b> لم يُسجَّل</span><span>الخانات الرمادية أيام عطلة</span></div>`;
+  if(!S.emps.length)return h+noStaff();
+  if(!emps.length)return h+'<div class="list"><div class="empty"><b>لا يوجد موظفون ضمن هذا الفلتر</b>غيّر المكتب أو نوع التصفية أو امسح البحث.</div></div>';
+  h+=`<p class="hint">${num(emps.length)} موظف · ملف Excel يصدر بثلاث أوراق: ملخص الشهر، الحضور اليومي، تفاصيل القيود، وكل عمود فيه زر فلترة.</p>`;
+  h+='<div class="reg-wrap"><table class="reg"><thead><tr><th class="nm">الموظف</th>'+days.map(ds=>`<th class="${isWork(ds)?'':'off'} ${ds===t?'td':''}"><b>${num(Number(ds.slice(8)))}</b>${WDS[wday(ds)]}</th>`).join('')+'<th>حضور</th><th>تأخر</th><th>غياب</th><th>إجازة</th><th>غير مسجل</th><th>النسبة</th><th>نقاط الشهر</th><th>الرصيد</th></tr></thead><tbody>';
+  h+=emps.map(r=>`<tr><td class="nm">${esc(r.e.name)}${r.e.archived?' <span class="chip muted">مؤرشف</span>':''}${r.e.title||r.e.office?`<div class="note">${esc([r.e.title,r.e.office].filter(Boolean).join(' · '))}</div>`:''}</td>`+r.cells.map(x=>{
+      if(x.a)return `<td class="c-${x.a.kind} ${x.w?'':'off'}" title="${esc(KIND[x.a.kind]?.l||'')}${x.a.time?' '+esc(t12(x.a.time)):''}">${CODE[x.a.kind]||''}</td>`;
+      return `<td class="${x.w?'c-none':'off'}">${x.w&&x.ds<=t?'·':''}</td>`}).join('')
+    +`<td class="tot" style="color:var(--good)">${num(r.c.present)}</td><td class="tot" style="color:var(--warn)">${num(r.c.late)}</td><td class="tot" style="color:var(--bad)">${num(r.c.absent)}</td><td class="tot" style="color:var(--info)">${num(r.c.leave)}</td><td class="tot">${num(r.missing)}</td><td class="tot">${r.rate==null?'—':num(r.rate)+'٪'}</td><td class="tot"><span class="pts ${ptsCls(r.mpts)}">${signed(r.mpts)}</span></td><td class="tot" style="color:${r.bal<0?'var(--bad)':'var(--gold)'}">${num(r.bal)}</td></tr>`).join('');
+  h+='</tbody></table></div><p class="hint">النسبة = (الحضور + التأخر) ÷ أيام الدوام المنقضية بعد طرح الإجازات.</p>';
+  return h;
+}
+function viewSched(){
+  const sc=S.sched;const up=(sc.holidays||[]).filter(d=>d>=today().slice(0,7)+'-01');
+  return `<div class="card"><h2>أيام الدوام الأسبوعية</h2><p class="hint">اختر الأيام التي يداوم فيها الكادر. الأيام غير المختارة تُعامل عطلة ولا يُسجَّل فيها غياب.</p>
+    <div class="days" id="wdays">${WD.map((d,i)=>`<button type="button" data-act="wdtoggle" data-i="${i}" aria-pressed="${!!(sc.days||DEF_SCHED.days)[i]}">${d}</button>`).join('')}</div></div>
+  <div class="card"><h2>أوقات الدوام</h2>
+    <div class="form"><label class="f">بداية الدوام<input type="time" id="s_start" value="${esc(sc.start||'17:00')}"></label>
+    <label class="f">نهاية الدوام<input type="time" id="s_end" value="${esc(sc.end||'22:00')}"></label>
+    <label class="f">سماحية التأخير (دقيقة)<input type="number" min="0" step="5" id="s_grace" value="${Number(sc.grace)||0}"></label></div>
+    <p class="hint">من يُسجَّل حاضراً بعد بداية الدوام بأكثر من مدة السماحية يُحتسب متأخراً تلقائياً.</p>
+    <div><button class="btn primary" data-act="savesched">حفظ أيام وأوقات الدوام</button></div></div>
+  <div class="card"><h2>العطل الرسمية</h2><p class="hint">أيام لا دوام فيها حتى لو كانت ضمن أيام الأسبوع، مثل المناسبات والعطل الرسمية.</p>
+    <div class="datepick"><input type="date" id="h_date" aria-label="تاريخ العطلة"><button class="btn sm" data-act="addhol">إضافة عطلة</button></div>
+    <div class="hol">${up.length?up.map(d=>`<span class="chip muted">${esc(fmtDate(d))} <button class="btn link" data-act="delhol" data-d="${d}" aria-label="حذف العطلة">×</button></span>`).join(''):'<span class="hint">لا توجد عطل مضافة.</span>'}</div></div>`;
 }
 function viewPoints(){
   const emps=activeEmps();const m=today().slice(0,7);
@@ -401,7 +532,7 @@ function viewLog(){
   const tot=ls.reduce((s,l)=>s+(Number(l.pts)||0),0);
   h+=`<p class="hint">${num(ls.length)} قيد · صافي النقاط <span class="pts ${ptsCls(tot)}">${signed(tot)}</span></p>`;
   h+='<div class="list">'+ls.map(l=>{const k=KIND[l.kind]||{l:l.kind,c:'muted'};return `<div class="log"><time>${esc(shortDate(l.date))}</time>
-    <div class="who"><b>${esc(empName(l.emp))} <span class="chip ${k.c}">${k.l}</span></b>${l.note?`<div class="note">${esc(l.note)}</div>`:''}${l.byName?`<div class="note">بواسطة ${esc(l.byName)}</div>`:''}</div>
+    <div class="who"><b>${esc(empName(l.emp))} <span class="chip ${k.c}">${k.l}</span>${l.time?` <span class="chip muted"><span class="tm">${esc(t12(l.time))}</span></span>`:''}</b>${l.note?`<div class="note">${esc(l.note)}</div>`:''}${l.byName?`<div class="note">بواسطة ${esc(l.byName)}</div>`:''}</div>
     <div style="display:flex;gap:8px;align-items:center"><span class="pts ${ptsCls(l.pts)}">${signed(Number(l.pts)||0)}</span>${isAdmin()?`<button class="btn sm danger" data-act="dellog" data-id="${esc(l.id)}">حذف</button>`:''}</div></div>`}).join('')+'</div>';
   return h;
 }
@@ -428,14 +559,14 @@ function viewRules(){
 }
 function render(){
   if(!S.me)return;
-  const tabs=TABS.filter(t=>!t[2]||isAdmin());
+  const tabs=TABS.filter(t=>!t[2]||(t[2]==='rec'?canRecord():isAdmin()));
   if(!tabs.some(t=>t[0]===S.tab))S.tab='day';
   document.getElementById('tabs').innerHTML=tabs.map(t=>`<button role="tab" data-tab="${t[0]}" aria-selected="${S.tab===t[0]}">${t[1]}</button>`).join('');
   const r=ROLES[S.me.role]||ROLES.viewer;
   document.getElementById('me').innerHTML=`<b>${esc(S.me.name)}</b><span class="chip ${r.c}">${r.l}</span><button class="btn link" data-act="mypass">كلمة المرور</button><button class="btn link" data-act="logout">خروج</button>`;
   const app=document.getElementById('app');
   if(!(S.loaded.emps&&S.loaded.logs)){app.innerHTML='<div class="list"><div class="empty"><b>جارٍ تحميل الدفتر…</b>يُجلب الموظفون والسجلات.</div></div>';return}
-  app.innerHTML=({day:viewDay,points:viewPoints,log:viewLog,staff:viewStaff,users:viewUsers,rules:viewRules})[S.tab]();
+  app.innerHTML=({day:viewDay,register:viewRegister,points:viewPoints,log:viewLog,sched:viewSched,staff:viewStaff,users:viewUsers,rules:viewRules})[S.tab]();
 }
 
 /* ===== أحداث ===== */
@@ -444,6 +575,10 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='dpick'&&e.target.value){S.date=e.target.value;render()}
   if(e.target.id==='lemp'){S.logEmp=e.target.value;render()}
   if(e.target.id==='lmon'){S.logMonth=e.target.value;render()}
+  if(e.target.id==='rmon'&&e.target.value){S.regMonth=e.target.value;render()}
+  if(e.target.id==='roff'){S.regOffice=e.target.value;render()}
+  if(e.target.id==='rflt'){S.regFilter=e.target.value;render()}
+  if(e.target.id==='rq'){S.regQ=e.target.value;render()}
 });
 document.getElementById('shell').addEventListener('click',e=>{
   const at=e.target.closest('[data-att]');if(at){setAtt(at.dataset.emp,at.dataset.att);return}
@@ -454,6 +589,19 @@ document.getElementById('shell').addEventListener('click',e=>{
     case 'next':S.date=shift(S.date,1);render();break;
     case 'today':S.date=today();render();break;
     case 'allpresent':markAllPresent();break;
+    case 'toggleday':toggleDate(S.date);break;
+    case 'csv':exportXLSX();break;
+    case 'rclear':S.regOffice='';S.regFilter='';S.regQ='';render();break;
+    case 'wdtoggle':b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')!=='true');break;
+    case 'savesched':{const days=[...document.querySelectorAll('#wdays button')].map(x=>x.getAttribute('aria-pressed')==='true');
+      const start=document.getElementById('s_start').value,end=document.getElementById('s_end').value,grace=Math.max(0,parseInt(document.getElementById('s_grace').value,10)||0);
+      if(!days.some(Boolean)){toast('اختر يوم دوام واحداً على الأقل');break}
+      if(!start||!end||mins(end)<=mins(start)){toast('وقت نهاية الدوام يجب أن يكون بعد وقت البداية');break}
+      saveSched({days,start,end,grace}).then(ok=>ok&&toast('حُفظت أيام وأوقات الدوام'));break}
+    case 'addhol':{const d=document.getElementById('h_date').value;if(!d){toast('اختر تاريخ العطلة');break}
+      const holidays=[...new Set([...(S.sched.holidays||[]),d])].sort(),extra=(S.sched.extra||[]).filter(x=>x!==d);
+      saveSched({holidays,extra}).then(ok=>ok&&toast('أُضيفت العطلة: '+fmtDate(d)));break}
+    case 'delhol':{const d=b.dataset.d;saveSched({holidays:(S.sched.holidays||[]).filter(x=>x!==d)}).then(ok=>ok&&toast('حُذفت العطلة'));break}
     case 'points':pointsModal(b.dataset.emp);break;
     case 'addemp':empModal(null);break;
     case 'editemp':empModal(emp);break;
@@ -481,6 +629,7 @@ const onErr=e=>{console.error(e);if(e.code==='permission-denied')document.getEle
 col('users').onSnapshot(s=>{S.users=s.docs.map(d=>({id:d.id,...d.data()}));S.loaded.users=true;route()},onErr);
 col('employees').onSnapshot(s=>{S.emps=s.docs.map(d=>({id:d.id,...d.data()}));S.loaded.emps=true;render()},onErr);
 col('logs').onSnapshot(s=>{S.logs=s.docs.map(d=>({id:d.id,...d.data()}));S.loaded.logs=true;render()},onErr);
+col('config').doc('schedule').onSnapshot(s=>{S.sched=s.exists?{...DEF_SCHED,...s.data()}:{...DEF_SCHED};render()},onErr);
 col('config').doc('rules').onSnapshot(s=>{S.rules=s.exists?{...DEF_RULES,...s.data()}:{...DEF_RULES};render()},onErr);
 })();
 </script>
