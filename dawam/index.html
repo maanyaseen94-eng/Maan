@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#1d6a50">
+<meta name="theme-color" content="#6b1a26">
 <title>دفتر الدوام والنقاط</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,21 +11,23 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
-/* Layout: one-column office ledger — sticky header with tabs, then a list of staff rows; points shown as a gold "رصيد" chip on every row. */
+/* Layout: one-column office ledger — maroon header bar with tabs, then a list of staff rows; points shown as a gold "رصيد" chip on every row. */
 :root{
-  --bg:#eef3f0; --surface:#ffffff; --raise:#f7faf8; --ink:#13231c; --muted:#5a6d64; --line:#d9e3dd;
-  --accent:#1d6a50; --accent-ink:#ffffff; --accent-soft:#dfeee7;
+  --bg:#f6f0f0; --surface:#ffffff; --raise:#faf5f5; --ink:#2a1215; --muted:#6f5659; --line:#e9dcdd;
+  --accent:#7a1f2b; --accent-ink:#ffffff; --accent-soft:#f4e2e4;
+  --head:#6b1a26; --head-ink:#ffffff; --head-muted:#e6c4c9;
   --gold:#9a6c14; --gold-soft:#f5ead2;
   --good:#1d7a4b; --good-soft:#ddf1e5; --warn:#a8620a; --warn-soft:#fbeed8;
   --bad:#b0322c; --bad-soft:#f8e2e0; --info:#2b5c86; --info-soft:#e1ebf5;
-  --shadow:0 1px 2px rgba(19,35,28,.06),0 6px 20px rgba(19,35,28,.06);
+  --shadow:0 1px 2px rgba(42,18,21,.06),0 6px 20px rgba(42,18,21,.07);
   --f-display:"Reem Kufi","IBM Plex Sans Arabic",Tahoma,sans-serif;
   --f-body:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root{
-  --bg:#0e1714; --surface:#16221d; --raise:#1b2a24; --ink:#e4ede8; --muted:#93a69d; --line:#2a3a33;
-  --accent:#4fb08a; --accent-ink:#06140f; --accent-soft:#1d3a2f;
+  --bg:#150b0d; --surface:#211316; --raise:#2a191d; --ink:#f2e7e8; --muted:#b59c9f; --line:#3b2629;
+  --accent:#d97a88; --accent-ink:#1a0a0d; --accent-soft:#3f1d23;
+  --head:#3e1118; --head-ink:#ffffff; --head-muted:#d6a9b0;
   --gold:#e0b45a; --gold-soft:#3a2f17;
   --good:#5cc78f; --good-soft:#173a28; --warn:#e8a54a; --warn-soft:#3b2b14;
   --bad:#ef7a72; --bad-soft:#3d1d1b; --info:#7fb2e0; --info-soft:#18293a;
@@ -37,15 +39,19 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 button,input,select,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
 .wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
-header.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+header.top{position:sticky;top:0;z-index:5;background:var(--head);color:var(--head-ink);box-shadow:var(--shadow);padding-top:env(safe-area-inset-top,0px)}
 .brand{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:14px 8px;flex-wrap:wrap}
 .brand h1{font-family:var(--f-display);font-weight:700;font-size:1.45rem;margin:0;text-wrap:balance}
-.brand small{display:block;color:var(--muted);font-size:.8rem;font-family:var(--f-body);font-weight:400}
-.me{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);flex-wrap:wrap}
-.me b{color:var(--ink);font-weight:600}
+.brand small{display:block;color:var(--head-muted);font-size:.8rem;font-family:var(--f-body);font-weight:400}
+.me{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--head-muted);flex-wrap:wrap}
+.me b{color:var(--head-ink);font-weight:600}
+.me .btn.link{color:var(--head-ink);text-decoration:underline;text-underline-offset:3px}
+header.top .me .chip{background:rgba(255,255,255,.16);color:var(--head-ink)}
 nav.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
-nav.tabs button{border:0;background:transparent;padding:8px 14px;border-radius:999px;color:var(--muted);font-weight:600;white-space:nowrap;cursor:pointer}
-nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+nav.tabs button{border:0;background:transparent;padding:8px 14px;border-radius:999px;color:var(--head-muted);font-weight:600;white-space:nowrap;cursor:pointer}
+nav.tabs button:hover{color:var(--head-ink)}
+nav.tabs button[aria-selected="true"]{background:var(--head-ink);color:var(--head)}
+header.top :focus-visible{outline-color:var(--head-ink)}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 main{display:flex;flex-direction:column;gap:16px;padding-top:16px}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
