@@ -51,7 +51,7 @@ html,body{margin:0}
 body{background-color:var(--bg);background-image:var(--grad-page);background-attachment:fixed;min-height:100vh;color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;padding-bottom:env(safe-area-inset-bottom,0px)}
 button,input,select,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
-.wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
 header.top{position:sticky;top:0;z-index:5;background:var(--head);background-image:var(--grad-head);color:var(--head-ink);box-shadow:var(--shadow);padding-top:env(safe-area-inset-top,0px)}
 .brand{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:14px 8px;flex-wrap:wrap}
 .brand h1{font-family:var(--f-display);font-weight:700;font-size:1.45rem;margin:0;text-wrap:balance}
@@ -60,8 +60,8 @@ header.top{position:sticky;top:0;z-index:5;background:var(--head);background-ima
 .me b{color:var(--head-ink);font-weight:600}
 .me .btn.link{color:var(--head-ink);text-decoration:underline;text-underline-offset:3px}
 header.top .me .chip{background:rgba(255,255,255,.16);color:var(--head-ink)}
-nav.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
-nav.tabs button{border:0;background:transparent;padding:8px 14px;border-radius:999px;color:var(--head-muted);font-weight:600;white-space:nowrap;cursor:pointer}
+nav.tabs{display:flex;flex-wrap:wrap;gap:4px 2px;padding-bottom:10px}
+nav.tabs button{border:0;background:transparent;padding:7px 13px;border-radius:999px;color:var(--head-muted);font-weight:600;white-space:nowrap;cursor:pointer}
 nav.tabs button:hover{color:var(--head-ink)}
 nav.tabs button[aria-selected="true"]{background:var(--head-ink);color:var(--head)}
 header.top :focus-visible{outline-color:var(--head-ink)}
@@ -255,7 +255,7 @@ const KIND={present:{l:'حاضر',c:'good'},late:{l:'متأخر',c:'warn'},absen
 const ATT=['present','late','absent','excused','leave'];
 const SVC={personal:{l:'إكمال طلب شخصي',k:'svc_personal'},appoint:{l:'تعيين فرد',k:'svc_appoint'},other:{l:'خدمة أخرى',k:null}};
 const RQS={pending:{l:'قيد الانتظار',c:'warn'},done:{l:'منجز',c:'good'},rejected:{l:'مرفوض',c:'muted'}};
-const ROLES={admin:{l:'مدير النظام',c:'acc',d:'كل الصلاحيات: الموظفون، المستخدمون، لائحة النقاط، أيام وأوقات الدوام، حذف القيود'},recorder:{l:'مسجّل دوام',c:'gold',d:'تسجيل الحضور والغياب والمكافآت والعقوبات، وتحديد أيام وأوقات الدوام'},viewer:{l:'اطلاع فقط',c:'muted',d:'يرى الحضور والترتيب والسجل دون تعديل'},employee:{l:'موظف',c:'good',d:'يسجّل دخوله وخروجه بمسح رمز شاشة المكتب، ويرى صفحته ونقاطه فقط. الحساب يرتبط بأول موبايل يدخل منه'},kiosk:{l:'شاشة المكتب',c:'info',d:'جهاز ثابت بالمكتب يعرض رمز الحضور المتغيّر كل 30 ثانية، ولا يرى أي بيانات'}};
+const ROLES={admin:{l:'مدير النظام',c:'acc',d:'كل الصلاحيات: الموظفون، المستخدمون، لائحة النقاط، أيام وأوقات الدوام، حذف القيود'},recorder:{l:'مسجّل دوام',c:'gold',d:'تسجيل الحضور والغياب والمكافآت والعقوبات، وتحديد أيام وأوقات الدوام'},viewer:{l:'اطلاع فقط',c:'muted',d:'يرى الحضور والترتيب والسجل دون تعديل'},employee:{l:'موظف',c:'good',d:'يسجّل دخوله وخروجه بمسح رمز شاشة المكتب، ويرى صفحته ونقاطه فقط'},kiosk:{l:'شاشة المكتب',c:'info',d:'جهاز ثابت بالمكتب يعرض رمز الحضور المتغيّر كل 30 ثانية، ولا يرى أي بيانات'}};
 const TABS=[['day','الدوام اليومي'],['register','السجل الشهري'],['points','النقاط والترتيب'],['requests','الطلبات'],['log','القيود'],['sched','أيام الدوام','rec'],['staff','الموظفون','admin'],['users','المستخدمون','admin'],['rules','لائحة النقاط']];
 const WD=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 const WDS=['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
@@ -276,8 +276,11 @@ const signed=n=>n>0?'+'+n:n<0?'−'+Math.abs(n):'0';
 const ptsCls=n=>n>0?'p':n<0?'m':'z';
 function fmtDate(ds){const [y,m,d]=ds.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('ar-IQ',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
 function shortDate(ds){if(!ds)return '';const [y,m,d]=ds.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('ar-IQ',{day:'numeric',month:'short'})}
+const AR=new Intl.Collator('ar',{sensitivity:'base',numeric:true});
+const normAr=t=>String(t||'').trim().replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/[\u064B-\u0652\u0640]/g,'');
+const byName=(a,b)=>AR.compare(normAr(a.name),normAr(b.name));
 const empName=id=>(S.emps.find(x=>x.id===id)||{name:'موظف محذوف'}).name;
-const activeEmps=()=>S.emps.filter(e=>!e.archived).sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+const activeEmps=()=>S.emps.filter(e=>!e.archived).sort((a,b)=>byName(a,b));
 const balance=id=>S.logs.reduce((s,l)=>l.emp===id?s+(Number(l.pts)||0):s,0);
 const attFor=(id,date)=>S.logs.find(l=>l.id==='att_'+date+'_'+id);
 const wday=ds=>{const [y,m,d]=ds.split('-').map(Number);return new Date(y,m-1,d).getDay()};
@@ -301,6 +304,7 @@ async function setAtt(emp,kind){
   try{
     if(cur&&cur.kind===kind){await col('logs').doc(id).delete();return}
     let k=kind,time='';
+    if(isAdmin()){await col('logs').doc(id).set({emp,kind:k,pts:Number(S.rules[k])||0,date:S.date,time:'',manual:true,note:'',...stamp()});return}
     if((k==='present'||k==='late')&&S.date===today()){
       time=nowHM();
       if(k==='present'&&mins(time)>mins(S.sched.start)+(Number(S.sched.grace)||0)){k='late';toast('سُجّل متأخراً: الحضور '+t12(time)+' بعد بداية الدوام '+t12(S.sched.start))}
@@ -311,7 +315,7 @@ async function setAtt(emp,kind){
 async function markAllPresent(){
   if(!isWork(S.date))return;
   const todo=activeEmps().filter(e=>!attFor(e.id,S.date));
-  const batch=db.batch();const time=S.date===today()?nowHM():'';
+  const batch=db.batch();const time=S.date===today()&&!isAdmin()?nowHM():'';
   todo.forEach(e=>batch.set(col('logs').doc('att_'+S.date+'_'+e.id),{emp:e.id,kind:'present',pts:Number(S.rules.present)||0,date:S.date,time,note:'',...stamp()}));
   try{await batch.commit();toast('سُجّل حضور '+num(todo.length)+' موظف')}catch(e){fail(e)}
 }
@@ -334,7 +338,7 @@ function regData(ym){
   let emps=S.emps.filter(e=>!e.archived||S.logs.some(l=>l.emp===e.id&&(l.date||'').startsWith(ym)));
   if(S.regOffice)emps=emps.filter(e=>(e.office||'').trim()===S.regOffice);
   if(q)emps=emps.filter(e=>(e.name+' '+(e.title||'')+' '+(e.office||'')).includes(q));
-  emps.sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+  emps.sort((a,b)=>byName(a,b));
   let rows=emps.map(e=>{
     const c={present:0,late:0,absent:0,excused:0,leave:0};let due=0;
     const cells=days.map(ds=>{const a=attFor(e.id,ds);const w=isWork(ds);if(a&&c[a.kind]!=null)c[a.kind]++;if(w&&ds<=t)due++;return {ds,w,a}});
@@ -361,7 +365,7 @@ async function exportXLSX(){
   const grid=[['الموظف','المكتب',...days.map(d=>Number(d.slice(8))+' '+WDS[wday(d)])],
     ...emps.map(r=>[r.e.name,r.e.office||'',...r.cells.map(x=>x.a?(KIND[x.a.kind]?.l||'')+(x.a.time?' '+t12(x.a.time):''):(x.w?(x.ds<=today()?'غير مسجل':''):'عطلة'))])];
   const det=[['التاريخ','اليوم','الموظف','العنوان الوظيفي','المكتب','النوع','وقت الحضور','النقاط','السبب','سجّله'],
-    ...emps.flatMap(r=>r.logs.map(l=>[l.date,WD[wday(l.date)],r.e.name,r.e.title||'',r.e.office||'',KIND[l.kind]?.l||l.kind,l.time?t12(l.time):'',Number(l.pts)||0,l.note||'',l.byName||''])).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))||String(a[2]).localeCompare(String(b[2]),'ar'))];
+    ...emps.flatMap(r=>r.logs.map(l=>[l.date,WD[wday(l.date)],r.e.name,r.e.title||'',r.e.office||'',KIND[l.kind]?.l||l.kind,l.time?t12(l.time):'',Number(l.pts)||0,l.note||'',l.byName||''])).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))||AR.compare(normAr(a[2]),normAr(b[2])))];
   const wb=X.utils.book_new();wb.Workbook={Views:[{RTL:true}]};
   X.utils.book_append_sheet(wb,sheet(sum,[5,24,18,16,10,12,7,7,11,10,7,9,12,10,11,10,11,14,10,11]),'ملخص الشهر');
   X.utils.book_append_sheet(wb,sheet(grid,[24,16,...days.map(()=>11)]),'الحضور اليومي');
@@ -474,13 +478,15 @@ async function reqReopen(q){
 }
 /* ===== المستخدمون والدخول (Firebase Authentication) ===== */
 const MAILDOM='@dawam-sec.app';
+const IN_APP=!!(window.TelegramWebviewProxy||window.TelegramWebview)||/FBAN|FBAV|Instagram|Line\/|Snapchat|WhatsApp|Telegram/i.test(navigator.userAgent);
+const inAppNote=()=>IN_APP?'<div class="ro-note">أنت فاتح التطبيق من داخل تيليغرام أو تطبيق آخر. افتحه من <b>Safari</b> أو <b>Chrome</b>، لأن كاميرا الموبايل تفتح رمز الحضور هناك، وإلا يطلع إن الحساب مربوط بجهاز آخر.</div>':'';
 function devId(){let d='';try{d=localStorage.getItem('dawam_dev')||''}catch(_){}if(!d){d='d'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);try{localStorage.setItem('dawam_dev',d)}catch(_){}}return d}
 async function createAuthUser(email,pass){
   const app2=firebase.apps.find(a=>a.name==='sec')||firebase.initializeApp(FIREBASE_CONFIG,'sec');
   const cred=await app2.auth().createUserWithEmailAndPassword(email,pass);const uid=cred.user.uid;await app2.auth().signOut();return uid;
 }
 const authErr=e=>({'auth/email-already-in-use':'اسم الدخول مستخدم مسبقاً','auth/weak-password':'كلمة المرور ضعيفة، 6 أحرف على الأقل','auth/wrong-password':'اسم الدخول أو كلمة المرور غير صحيحة','auth/user-not-found':'اسم الدخول أو كلمة المرور غير صحيحة','auth/invalid-credential':'اسم الدخول أو كلمة المرور غير صحيحة','auth/invalid-login-credentials':'اسم الدخول أو كلمة المرور غير صحيحة','auth/too-many-requests':'محاولات كثيرة، انتظر قليلاً ثم أعد المحاولة','auth/network-request-failed':'لا يوجد اتصال بالإنترنت','auth/operation-not-allowed':'تسجيل الدخول بالبريد غير مفعّل في Firebase','auth/requires-recent-login':'لأمان حسابك، اخرج وادخل من جديد ثم غيّر كلمة المرور'}[e&&e.code]||'حدث خطأ: '+((e&&e.code)||'غير معروف'));
-function empOptions(sel){return '<option value="">— بدون —</option>'+S.emps.slice().sort((a,b)=>a.name.localeCompare(b.name,'ar')).map(e=>`<option value="${esc(e.id)}" ${sel===e.id?'selected':''}>${esc(e.name)}${e.archived?' (مؤرشف)':''}</option>`).join('')}
+function empOptions(sel){return '<option value="">— بدون —</option>'+S.emps.slice().sort((a,b)=>byName(a,b)).map(e=>`<option value="${esc(e.id)}" ${sel===e.id?'selected':''}>${esc(e.name)}${e.archived?' (مؤرشف)':''}</option>`).join('')}
 function userModal(u){
   modal(`<h3>${u?'تعديل المستخدم':'إضافة مستخدم'}</h3>
     <label class="f">الاسم الظاهر<input id="un" type="text" value="${esc(u?.name||'')}" placeholder="مثال: علي حسين"></label>
@@ -566,7 +572,7 @@ function gateSetup(){
   };
 }
 function gateLogin(){
-  gate(`<form class="card" id="lf">${LOGO}<h1>دفتر الدوام والنقاط</h1><p class="hint">${S.k?'سجّل دخولك أولاً، بعدها يُسجَّل حضورك بالرمز الذي مسحته.':'سجّل الدخول بحسابك.'}</p>
+  gate(`<form class="card" id="lf">${LOGO}<h1>دفتر الدوام والنقاط</h1><p class="hint">${S.k?'سجّل دخولك أولاً، بعدها يُسجَّل حضورك بالرمز الذي مسحته.':'سجّل الدخول بحسابك.'}</p>${inAppNote()}
     <label class="f">اسم الدخول<input id="lu" type="text" dir="ltr" autocomplete="username" required></label>
     <label class="f">كلمة المرور<input id="lp" type="password" autocomplete="current-password" required></label>
     <p class="err" id="le"></p><button class="btn primary" type="submit">دخول</button></form>`);
@@ -673,6 +679,9 @@ function punchSummary(list){
 }
 function punchFlags(sum,ds){
   const f=[];const sc=S.sched;const geo=sc.geo||{};
+  const me0=(sum.ps[0]||{}).emp;const devs=new Set(sum.ps.map(p=>p.device).filter(Boolean));
+  const shared=[...new Set((S.punches||[]).filter(p=>p.day===ds&&p.emp!==me0&&devs.has(p.device)).map(p=>empName(p.emp)))];
+  if(shared.length)f.push(['bad','نفس الموبايل سجّل أيضاً لـ: '+shared.join('، ')]);
   if(sum.inP&&mins(hmOf(tsDate(sum.inP)))>mins(sc.start)+(Number(sc.grace)||0))f.push(['warn','دخل متأخراً']);
   if(sum.outP&&mins(hmOf(tsDate(sum.outP)))<mins(sc.end)-10)f.push(['warn','خرج قبل نهاية الدوام']);
   if(sum.inP&&(!sum.outP||tsDate(sum.outP)<tsDate(sum.inP))&&(ds<today()||mins(nowHM())>mins(sc.end)+30))f.push(['bad','بدون تسجيل خروج']);
@@ -695,9 +704,12 @@ function viewMe(){
   const e=S.emps[0];if(!e)return '<div class="list"><div class="empty"><b>جارٍ التحميل…</b></div></div>';
   const mine=S.myPunches||[];const sum=punchSummary(mine.filter(p=>p.day===today()));
   const inside=sum.last&&sum.last.type==='in';const bal=balance(e.id);
-  const wrongDev=S.me.device&&S.me.device!==devId();
+  const wrongDev=false;
   let h=`<div class="card prof"><div class="who"><h2>${esc(e.name)}</h2><span>${esc([e.title,e.office].filter(Boolean).join(' · ')||'')}</span></div><div class="bal ${bal<0?'neg':''}"><b>${num(bal)}</b><span>رصيد نقاطك</span></div></div>`;
-  if(wrongDev)h+='<div class="ro-note">هذا الحساب مربوط بجهاز آخر، فلا يمكن التسجيل من هذا الموبايل. اطلب من مدير النظام إعادة ضبط الجهاز.</div>';
+  h+=inAppNote();
+  if(wrongDev)h+=S.me.devReq===devId()
+    ?'<div class="ro-note">أرسلت طلب ربط هذا الموبايل بحسابك. انتظر موافقة مدير النظام، بعدها تقدر تسجّل من هنا.</div>'
+    :'<div class="ro-note">حسابك مسجّل على موبايل أو متصفح آخر، فلا يمكن التسجيل من هنا. إذا بدّلت موبايلك أو المتصفح، اطلب ربط هذا الموبايل.<div style="margin-top:8px"><button class="btn sm primary" data-act="devreq">اطلب ربط هذا الموبايل</button></div></div>';
   const st=!sum.last?'لم تسجّل دخولك اليوم':inside?'داخل الدوام منذ '+t12(hmOf(tsDate(sum.inP)||tsDate(sum.last))):'سجّلت خروجك '+t12(hmOf(tsDate(sum.last)));
   h+=`<div class="card punch"><div class="punch-st ${inside?'in':''}"><span>اليوم · ${esc(fmtDate(today()))}</span><b>${esc(st)}</b><span>الدوام ${esc(hours())}</span></div>`;
   if(S.k&&!wrongDev){h+=`<button class="btn primary big" id="pbtn" data-act="punch">${inside?'سجّل خروجي الآن':'سجّل دخولي الآن'}</button><p class="hint" id="pmsg">${(S.sched.geo||{}).on?'سيُطلب منك السماح بتحديد الموقع.':''}</p>`}
@@ -738,9 +750,11 @@ function viewDay(){
     :`<div class="banner off"><span>يوم عطلة · ${WD[wday(S.date)]} · لا يُسجَّل فيه حضور أو غياب</span>${canRecord()?'<button class="btn sm" data-act="toggleday">جعله يوم دوام</button>':''}</div>`;
   if(!emps.length)return h+noStaff();
   if(!work)return h;
+  const dreq=0;
+  if(dreq)h+=`<div class="banner"><span>${num(dreq)} موظف يطلب ربط موبايل جديد بحسابه</span><button class="btn sm primary" data-tab-go="users">مراجعة الطلبات</button></div>`;
   const pend=activeEmps().filter(e=>!attFor(e.id,S.date)&&S.punches.some(p=>p.emp===e.id&&p.day===S.date&&p.type==='in')).length;
   if(pend&&canRecord())h+=`<div class="banner"><span>${num(pend)} موظف سجّل بصمة دخول ولم يُعتمد حضوره بعد</span><button class="btn sm primary" data-act="approve">اعتماد حسب البصمة</button></div>`;
-  if(un&&canRecord())h+=`<div class="bar"><p class="hint">اضغط الحالة مرة ثانية لإلغائها. الحضور بعد ${esc(t12(S.sched.start))} بأكثر من ${num(Number(S.sched.grace)||0)} دقيقة يُسجَّل تأخيراً تلقائياً.</p><button class="btn sm" data-act="allpresent">تسجيل الباقين حضوراً (${num(un)})</button></div>`;
+  if(un&&canRecord())h+=`<div class="bar"><p class="hint">اضغط الحالة مرة ثانية لإلغائها. ${isAdmin()?'إدخالك كمدير نظام يُعتمد كما تختاره (حاضر أو متأخر) دون الرجوع إلى الوقت.':'الحضور بعد '+esc(t12(S.sched.start))+' بأكثر من '+num(Number(S.sched.grace)||0)+' دقيقة يُسجَّل تأخيراً تلقائياً.'}</p><button class="btn sm" data-act="allpresent">تسجيل الباقين حضوراً (${num(un)})</button></div>`;
   h+='<div class="list">'+emps.map(e=>{const a=attFor(e.id,S.date);const b=balance(e.id);
     return `<div class="row"><div class="who"><b><button class="lnk" data-act="openemp" data-id="${esc(e.id)}">${esc(e.name)}</button></b><span>${esc([e.title,e.office].filter(Boolean).join(' · ')||'—')}</span> <span class="chip ${b<0?'bad':'gold'}">${num(b)} نقطة</span>${(()=>{const ps=punchSummary(S.punches.filter(p=>p.emp===e.id&&p.day===S.date));if(!ps.ps.length)return a&&a.time?` <span class="chip muted">وصل <span class="tm">${esc(t12(a.time))}</span></span>`:'';return ` <span class="chip good pch">بصمة دخول <span class="tm">${ps.inP?esc(t12(hmOf(tsDate(ps.inP)))):'—'}</span></span> <span class="chip info pch">خروج <span class="tm">${ps.outP?esc(t12(hmOf(tsDate(ps.outP)))):'—'}</span></span>`+punchFlags(ps,S.date).map(([c,t])=>` <span class="chip ${c}">${t}</span>`).join('')})()}${a&&a.byName?` <span class="hint">· سجّله ${esc(a.byName)}</span>`:''}</div>
       <div class="seg">${ATT.map(k=>`<button class="${KIND[k].c}" aria-pressed="${!!(a&&a.kind===k)}" data-att="${k}" data-emp="${esc(e.id)}" ${dis}>${KIND[k].l} <span class="pts" style="opacity:.75">${signed(Number(S.rules[k])||0)}</span></button>`).join('')}</div></div>`}).join('')+'</div>';
@@ -792,7 +806,7 @@ function viewPoints(){
   h+=`<div class="bar"><div class="sec"><h2>ترتيب المفاضلة</h2><p class="hint">الرصيد = الحضور والمكافآت − الغياب والإجازات والعقوبات − الخدمات المصروفة. اضغط اسم الموظف لصفحته.</p></div>${canRecord()&&emps.length?'<button class="btn primary" data-act="points">مكافأة أو عقوبة</button>':''}</div>`;
   if(!emps.length)return h+noStaff();
   const rows=emps.map(e=>{const ls=S.logs.filter(l=>l.emp===e.id);const mon=ls.filter(l=>(l.date||'').startsWith(m));const c=k=>mon.filter(l=>l.kind===k).length;
-    return {e,b:ls.reduce((s,l)=>s+(Number(l.pts)||0),0),md:mon.reduce((s,l)=>s+(Number(l.pts)||0),0),p:c('present'),lt:c('late'),ab:c('absent'),pn:c('penalty')}}).sort((a,b)=>b.b-a.b);
+    return {e,b:ls.reduce((s,l)=>s+(Number(l.pts)||0),0),md:mon.reduce((s,l)=>s+(Number(l.pts)||0),0),p:c('present'),lt:c('late'),ab:c('absent'),pn:c('penalty')}}).sort((a,b)=>b.b-a.b||byName(a.e,b.e));
   const max=Math.max(1,...rows.map(r=>r.b));
   h+='<div class="list">'+rows.map((r,i)=>`<div class="rank"><div class="n">${num(i+1)}</div>
     <div class="who"><b><button class="lnk" data-act="openemp" data-id="${esc(r.e.id)}">${esc(r.e.name)}</button></b>
@@ -802,7 +816,7 @@ function viewPoints(){
   return h+'<p class="hint">مؤشرات الحضور والتأخر والغياب تخص الشهر الحالي.</p>';
 }
 function viewLog(){
-  const all=S.emps.slice().sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+  const all=S.emps.slice().sort((a,b)=>byName(a,b));
   let h=`<div class="bar"><div class="sec"><h2>سجل القيود</h2></div><div class="datepick">
     <select id="lemp" aria-label="الموظف"><option value="">كل الموظفين</option>${all.map(e=>`<option value="${esc(e.id)}" ${S.logEmp===e.id?'selected':''}>${esc(e.name)}</option>`).join('')}</select>
     <input type="month" id="lmon" value="${S.logMonth}" aria-label="الشهر"></div></div>`;
@@ -818,16 +832,16 @@ function viewLog(){
 function viewStaff(){
   let h=`<div class="bar"><div class="sec"><h2>الموظفون</h2><p class="hint">${num(activeEmps().length)} موظف في الخدمة</p></div><button class="btn primary" data-act="addemp">إضافة موظف</button></div>`;
   if(!S.emps.length)return h+'<div class="list"><div class="empty"><b>القائمة فارغة</b>ابدأ بإضافة أول موظف في المكتب.</div></div>';
-  const list=S.emps.slice().sort((a,b)=>(a.archived?1:0)-(b.archived?1:0)||a.name.localeCompare(b.name,'ar'));
+  const list=S.emps.slice().sort((a,b)=>(a.archived?1:0)-(b.archived?1:0)||byName(a,b));
   h+='<div class="list">'+list.map(e=>{const b=balance(e.id);const has=S.logs.some(l=>l.emp===e.id);return `<div class="row"><div class="who"><b><button class="lnk" data-act="openemp" data-id="${esc(e.id)}">${esc(e.name)}</button> ${e.archived?'<span class="chip muted">مؤرشف</span>':''}</b><span>${esc([e.title,e.office].filter(Boolean).join(' · ')||'—')}</span> <span class="chip ${b<0?'bad':'gold'}">${num(b)} نقطة</span></div>
     <div class="seg"><button data-act="editemp" data-id="${esc(e.id)}">تعديل</button><button data-act="${e.archived?'restore':'archive'}" data-id="${esc(e.id)}">${e.archived?'إعادة للخدمة':'أرشفة'}</button><button data-act="delemp" data-id="${esc(e.id)}">حذف</button></div></div>`}).join('')+'</div>';
   return h+'<p class="hint">الأرشفة تُخفي الموظف من الدوام اليومي والترتيب وتحفظ سجله ونقاطه. الحذف نهائي ويمسح الموظف مع كل سجلات حضوره ونقاطه، فإذا تريد تحتفظ بسجله استخدم الأرشفة.</p>';
 }
 function viewUsers(){
   let h=`<div class="bar"><div class="sec"><h2>المستخدمون</h2><p class="hint">كل موظف يحتاج حساباً بصلاحية «موظف» حتى يسجّل حضوره. وشاشة المكتب تحتاج حساباً بصلاحية «شاشة المكتب».</p></div><button class="btn primary" data-act="adduser">إضافة مستخدم</button></div>`;
-  const us=S.users.filter(u=>u.auth).slice().sort((a,b)=>a.name.localeCompare(b.name,'ar'));
-  h+='<div class="list">'+us.map(u=>{const r=ROLES[u.role]||ROLES.viewer;return `<div class="row"><div class="who"><b>${esc(u.name)} ${u.id===S.me.id?'<span class="chip muted">أنت</span>':''}</b><span dir="ltr">${esc(u.username)}</span> <span class="chip ${r.c}">${r.l}</span>${u.role==='employee'?` <span class="chip muted">${u.empId?esc(empName(u.empId)):'غير مرتبط'}</span> <span class="chip ${u.device?'good':'warn'}">${u.device?'مربوط بجهاز':'لم يدخل بعد'}</span>`:''}</div>
-    <div class="seg"><button data-act="edituser" data-id="${esc(u.id)}">تعديل</button>${u.role==='employee'&&u.device?`<button data-act="resetdev" data-id="${esc(u.id)}">إعادة ضبط الجهاز</button>`:''}${u.id===S.me.id?'':`<button data-act="resetpass" data-id="${esc(u.id)}">كلمة مرور جديدة</button><button data-act="deluser" data-id="${esc(u.id)}">حذف</button>`}</div></div>`}).join('')+'</div>';
+  const us=S.users.filter(u=>u.auth).slice().sort((a,b)=>byName(a,b));
+  h+='<div class="list">'+us.map(u=>{const r=ROLES[u.role]||ROLES.viewer;return `<div class="row"><div class="who"><b>${esc(u.name)} ${u.id===S.me.id?'<span class="chip muted">أنت</span>':''}</b><span dir="ltr">${esc(u.username)}</span> <span class="chip ${r.c}">${r.l}</span>${u.role==='employee'?` <span class="chip muted">${u.empId?esc(empName(u.empId)):'غير مرتبط'}</span> `:''}</div>
+    <div class="seg"><button data-act="edituser" data-id="${esc(u.id)}">تعديل</button>${u.id===S.me.id?'':`<button data-act="resetpass" data-id="${esc(u.id)}">كلمة مرور جديدة</button><button data-act="deluser" data-id="${esc(u.id)}">حذف</button>`}</div></div>`}).join('')+'</div>';
   h+='<div class="card">'+Object.values(ROLES).map(r=>`<p class="hint"><span class="chip ${r.c}">${r.l}</span> ${r.d}</p>`).join('')+'</div>';
   return h;
 }
@@ -915,6 +929,7 @@ document.getElementById('app').addEventListener('change',e=>{
   if(e.target.id==='qflt'){S.reqFilter=e.target.value;render()}
 });
 document.getElementById('shell').addEventListener('click',e=>{
+  const tg=e.target.closest('[data-tab-go]');if(tg){S.tab=tg.dataset.tabGo;render();return}
   const at=e.target.closest('[data-att]');if(at){setAtt(at.dataset.emp,at.dataset.att);return}
   const b=e.target.closest('[data-act]');if(!b)return;
   const id=b.dataset.id;const emp=S.emps.find(x=>x.id===id);const usr=S.users.find(x=>x.id===id);
@@ -963,6 +978,9 @@ document.getElementById('shell').addEventListener('click',e=>{
     case 'mypass':myPassModal();break;
     case 'logout':logout();break;
     case 'punch':doPunch();break;
+    case 'devreq':col('users').doc(S.me.id).update({devReq:devId(),devReqAt:new Date().toISOString()}).then(()=>toast('أُرسل الطلب لمدير النظام')).catch(fail);break;
+    case 'devok':col('users').doc(id).update({device:usr.devReq,devReq:'',devReqAt:''}).then(()=>toast('رُبط الموبايل الجديد بحساب '+usr.name)).catch(fail);break;
+    case 'devno':col('users').doc(id).update({devReq:'',devReqAt:''}).then(()=>toast('رُفض الطلب')).catch(fail);break;
     case 'approve':approvePunches();break;
     case 'resetpass':resetPassModal(usr);break;
     case 'resetdev':confirmBox('إعادة ضبط جهاز '+usr.name+'؟','سيرتبط الحساب بأول موبايل يدخل منه بعد الآن.','إعادة ضبط',async()=>{try{await col('users').doc(id).update({device:''});toast('أُعيد ضبط الجهاز')}catch(err){fail(err)}});break;
