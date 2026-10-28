@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>النائب عدي عواد الحسين</title>
+<meta name="theme-color" content="#0e4a38">
+<link rel="icon" href="logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Noto+Kufi+Arabic:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="demo" class="demo hide">وضع تجريبي — البيانات محفوظة على هذا الجهاز فقط لحين ربط Firebase</div>
+
+<header class="hero">
+  <div class="wrap">
+    <img src="logo.jpg" alt="شعار مجلس النواب">
+    <div>
+      <small>النائب المهندس</small>
+      <h1>عدي عواد الحسين</h1>
+      <div class="roles">رئيس كتلة الصادقون النيابية · رئيس اللجنة المالية</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <nav class="tabs" role="tablist">
+    <button data-tab="mail" class="on">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>البريد</button>
+    <button data-tab="acts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M10 6h6M10 10h6M10 14h4"/></svg>نشاطات النائب</button>
+  </nav>
+
+  <!-- البريد -->
+  <section id="tab-mail">
+    <form class="card" id="f">
+      <h2>متابعة كتابك</h2>
+      <p class="sub">اكتب اسمك الثلاثي أو رقم هاتفك كما ورد في الطلب لعرض تفاصيل كتابك ومكان وجوده الحالي.</p>
+      <label for="nm">الاسم الثلاثي أو رقم الهاتف</label>
+      <input id="nm" required placeholder="مثال: محمد علي حسين  أو  07701234567">
+      <button class="btn block" id="go">عرض تفاصيل الكتاب</button>
+      <div id="out-msg"></div>
+    </form>
+    <div id="results"></div>
+  </section>
+
+  <!-- النشاطات -->
+  <section id="tab-acts" class="hide">
+    <div id="acts"><div class="empty">جارِ التحميل…</div></div>
+  </section>
+</main>
+
+<div id="lb" class="lb hide"><img id="lbImg" alt="صورة الكتاب"></div>
+<footer>
+  البصرة - حي الخليج العربي - بناية مجلس النواب العراقي<br>
+  للاستفسار: <a href="tel:07722945824">07722945824</a> · <a href="tel:07702818058">07702818058</a>
+</footer>
+
+<script type="module">
+import * as D from "./data.js";
+
+const $ = (s) => document.querySelector(s);
+if (D.isDemo) $("#demo").classList.remove("hide");
+
+const ready = D.init();
+
+/* تبويبات */
+function show(t) {
+  document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === t));
+  $("#tab-mail").classList.toggle("hide", t !== "mail");
+  $("#tab-acts").classList.toggle("hide", t !== "acts");
+  history.replaceState(null, "", t === "acts" ? "#activities" : "#mail");
+  if (t === "acts") loadActs();
+}
+document.querySelectorAll(".tabs button").forEach((b) => (b.onclick = () => show(b.dataset.tab)));
+if (location.hash === "#activities") show("acts");
+
+/* البحث */
+const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+const ICON_FLAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4h12l-2 4 2 4H4"/></svg>';
+
+$("#f").onsubmit = async (e) => {
+  e.preventDefault();
+  const val = $("#nm").value.trim();
+  const msg = $("#out-msg"); msg.innerHTML = ""; $("#results").innerHTML = "";
+  if (!D.looksLikePhone(val) && D.normalizeName(val).split(" ").length < 3) {
+    msg.innerHTML = '<div class="msg err">يرجى كتابة الاسم الثلاثي كاملاً، أو رقم الهاتف بـ 11 رقماً.</div>'; return;
+  }
+  const btn = $("#go"); btn.disabled = true; btn.textContent = "جارِ البحث…";
+  try {
+    await ready;
+    const doc = await D.publicLookup(await D.lookupKey(val));
+    if (!doc || !doc.letters?.length) {
+      msg.innerHTML = '<div class="msg">لم نعثر على كتاب بهذه البيانات. جرّب البحث برقم الهاتف أو بالاسم كما ورد في الطلب، أو تواصل مع مكتب النائب.</div>';
+    } else {
+      $("#results").innerHTML = doc.letters.map(renderLetter).join("");
+      $("#results").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  } catch (err) {
+    console.error(err);
+    msg.innerHTML = '<div class="msg err">تعذّر الاتصال، يرجى المحاولة مرة أخرى.</div>';
+  }
+  btn.disabled = false; btn.textContent = "عرض تفاصيل الكتاب";
+};
+
+function renderLetter(l) {
+  const t = D.today();
+  const done = l.status === "done";
+  const late = !done && l.expectedDate && l.expectedDate < t;
+  const badge = done ? '<span class="badge">مكتمل</span>'
+    : late ? '<span class="badge late">تجاوز الموعد المتوقع</span>'
+    : '<span class="badge active">قيد المتابعة</span>';
+  const stages = l.stages || [];
+  const cur = stages[stages.length - 1];
+  let items = stages.map((s, i) => {
+    const isCur = !done && i === stages.length - 1;
+    return `<li class="${isCur ? "cur" : ""}">
+      <span class="dot">${isCur ? ICON_FLAG : ICON_OK}</span>
+      <div class="st">${D.esc(s.title)}</div>
+      ${s.location ? `<div class="loc">${D.esc(s.location)}</div>` : ""}
+      <div class="when">${D.fmtDate(s.date)}</div>
+      ${s.note ? `<div class="note">${D.esc(s.note)}</div>` : ""}
+    </li>`;
+  }).join("");
+  if (!done && l.expectedDate) {
+    const left = D.daysBetween(t, l.expectedDate);
+    const txt = left > 0 ? `بعد ${left} يوم تقريباً` : left === 0 ? "اليوم" : "قيد المتابعة الحثيثة من المكتب";
+    items += `<li class="future"><span class="dot">${ICON_FLAG}</span>
+      <div class="st">الإكمال المتوقع</div>
+      <div class="when">${D.fmtDate(l.expectedDate)} — ${txt}</div></li>`;
+  }
+  return `<article class="card">
+    <div class="letter-head">
+      <div><div class="t">${D.esc(l.type || "كتاب")}${l.number ? ` · العدد ${D.esc(l.number)}` : ""}</div>
+      ${l.subject ? `<div class="subj">م/ ${D.esc(l.subject)}</div>` : ""}
+      <div class="meta">صدر بتاريخ ${D.fmtDate(l.date)}</div></div>${badge}
+    </div>
+    <div class="facts">
+      <div><b>الجهة المرسل إليها</b><span>${D.esc(l.destination || "—")}</span></div>
+      <div><b>مكان الكتاب الآن</b><span>${D.esc(done ? "مكتمل" : (cur?.location || "مكتب النائب"))}</span></div>
+      <div><b>التاريخ المتوقع للإكمال</b><span>${done ? "تم الإنجاز" : D.fmtDate(l.expectedDate)}</span></div>
+    </div>
+    ${l.imageId ? `<button class="btn ghost sm imgbtn" data-img="${D.esc(l.imageId)}" style="margin-bottom:14px">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+      عرض صورة الكتاب${l.pages > 1 ? ` (${l.pages} صفحات)` : ""}</button><div class="pages"></div>` : ""}
+    <ul class="tl">${items || '<li class="cur"><span class="dot"></span><div class="st">تم تسجيل الطلب</div></li>'}</ul>
+  </article>`;
+}
+
+/* صورة الكتاب */
+$("#results").onclick = async (e) => {
+  const b = e.target.closest(".imgbtn");
+  if (b) {
+    const box = b.nextElementSibling;
+    if (box.innerHTML) { box.innerHTML = ""; return; }
+    b.disabled = true;
+    try {
+      const d = await D.imageGet(b.dataset.img);
+      box.innerHTML = (d?.pages || []).map((p) => `<img src="${p}" alt="صورة الكتاب">`).join("") || '<div class="hint">الصورة غير متوفرة.</div>';
+    } catch { box.innerHTML = '<div class="hint">تعذّر تحميل الصورة.</div>'; }
+    b.disabled = false; return;
+  }
+  if (e.target.matches(".pages img")) { $("#lbImg").src = e.target.src; $("#lb").classList.remove("hide"); }
+};
+$("#lb").onclick = () => $("#lb").classList.add("hide");
+
+/* النشاطات */
+let actsLoaded = false;
+async function loadActs() {
+  if (actsLoaded) return; actsLoaded = true;
+  try {
+    await ready;
+    const list = await D.activitiesAll();
+    $("#acts").innerHTML = list.length ? list.map((a) => `<article class="card act">
+      <div class="d">${D.fmtDate(a.date)}</div>
+      <h3>${D.esc(a.title)}</h3>
+      ${a.image ? `<img src="${a.image}" alt="" loading="lazy">` : ""}
+      <p>${D.esc(a.text)}</p></article>`).join("")
+      : '<div class="card empty">لا توجد نشاطات منشورة حالياً.</div>';
+  } catch (e) { actsLoaded = false; $("#acts").innerHTML = '<div class="card empty">تعذّر تحميل النشاطات.</div>'; }
+}
+</script>
+</body>
+</html>
