@@ -2,36 +2,41 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function myEmail() { return request.auth.token.email.lower(); }
     function isOwner() { return signedIn() && request.auth.token.email == 'maanyaseen94@gmail.com'; }
-    function isStaff() {
-      return isOwner() || (signedIn() &&
-        exists(/databases/$(database)/documents/staff/$(request.auth.token.email.lower())));
+    function staffDoc() { return get(/databases/$(database)/documents/staff/$(myEmail())); }
+    function hasPerm(p) {
+      return signedIn() && exists(/databases/$(database)/documents/staff/$(myEmail()))
+        && staffDoc().data.get('perms', {}).get(p, false) == true;
     }
-    // قائمة الموظفين المخوّلين — يديرها المسؤول فقط
+    function canMail() { return isOwner() || hasPerm('mail'); }
+    function canActs() { return isOwner() || hasPerm('acts'); }
+    function canPress() { return isOwner() || hasPerm('press'); }
+
     match /staff/{email} {
-      allow read: if isStaff() || (signedIn() && request.auth.token.email.lower() == email);
+      allow read: if isOwner() || (signedIn() && myEmail() == email);
       allow write: if isOwner();
     }
-    // ملخص عام لكل مواطن: يُقرأ فقط برمز البحث (الاسم أو الهاتف)، ولا يمكن تصفّح القائمة
     match /public/{key} {
       allow get: if true;
       allow list: if false;
-      allow write: if isStaff();
+      allow write: if canMail();
     }
-    // الكتب الكاملة للموظفين فقط
     match /letters/{id} {
-      allow read, write: if isStaff();
+      allow read, write: if canMail();
     }
-    // صور الكتب: تُفتح فقط برمزها العشوائي الموجود في نتيجة البحث
     match /images/{id} {
       allow get: if true;
       allow list: if false;
-      allow write: if isStaff();
+      allow write: if canMail();
     }
-    // النشاطات يراها الجميع
     match /activities/{id} {
       allow read: if true;
-      allow write: if isStaff();
+      allow write: if canActs();
+    }
+    match /press/{id} {
+      allow read: if true;
+      allow write: if canPress();
     }
   }
 }

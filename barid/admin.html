@@ -6,15 +6,17 @@
 <title>إدارة البريد</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#0e4a38">
-<link rel="icon" href="logo.jpg">
+<link rel="icon" href="logo-gold.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Noto+Kufi+Arabic:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-  .hero{padding-bottom:58px}
-  .hero h1{font-size:24px}
+  .hero{padding-bottom:62px}
+  .hero h1{font-size:26px}
   .bar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
-  .bar input{flex:1}
+  .bar input{flex:1;min-width:0}
+  .bar{flex-wrap:wrap}
   .item{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--line);cursor:pointer}
   .item:last-child{border:0}
   .item .n{font-weight:700}
@@ -32,13 +34,16 @@
   .thumbs button{position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;border:0;background:var(--red);color:#fff;cursor:pointer;line-height:1}
   canvas{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);margin-top:10px}
   .tabs{max-width:520px}
+  .perms{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}
+  .ck{display:inline-flex;align-items:center;gap:6px;font-weight:500;margin:0;cursor:pointer;font-size:13px}
+  .ck input{width:auto;accent-color:var(--green)}
 </style>
 </head>
 <body>
 <div id="demo" class="demo hide">وضع تجريبي — البيانات محفوظة على هذا الجهاز فقط لحين ربط Firebase</div>
 <header class="hero"><div class="wrap">
-  <img src="logo.jpg" alt="">
-  <div><small>لوحة إدارة البريد والنشاطات</small><h1>مكتب النائب عدي عواد الحسين</h1></div>
+  <img src="logo-gold.png" alt="">
+  <div><small>لوحة إدارة البريد والنشاطات والتصريحات</small><h1>مكتب النائب عدي عواد الحسين</h1></div>
 </div></header>
 
 <main class="wrap">
@@ -56,6 +61,7 @@
     <nav class="tabs">
       <button data-tab="letters" class="on">الكتب</button>
       <button data-tab="acts">النشاطات</button>
+      <button data-tab="press">التصريحات</button>
       <button data-tab="qr">رمز الفورمة</button>
       <button data-tab="staff" class="hide">الموظفون</button>
       <button id="out" style="flex:0 0 auto;padding:10px 14px" title="خروج">خروج</button>
@@ -67,6 +73,7 @@
         <div class="bar">
           <input id="q" placeholder="بحث بالاسم أو العدد أو الجهة…">
           <button class="btn" id="newBtn">+ كتاب جديد</button>
+          <button class="btn ghost xls">تصدير Excel</button>
         </div>
         <div class="filters" id="filters">
           <button class="chip on" data-f="all">الكل</button>
@@ -131,15 +138,32 @@
 
     <!-- النشاطات -->
     <section id="tab-acts" class="hide">
-      <form class="card" id="af">
+      <form class="card pf" data-kind="acts">
         <h2>نشر نشاط جديد</h2>
-        <label>العنوان</label><input id="a_title" required>
-        <label>التاريخ</label><input id="a_date" type="date" required>
-        <label>التفاصيل</label><textarea id="a_text"></textarea>
-        <label>صورة (اختياري)</label><input id="a_img" type="file" accept="image/*">
+        <label>العنوان</label><input name="title" required>
+        <label>التاريخ</label><input name="date" type="date" required>
+        <label>التفاصيل</label><textarea name="text"></textarea>
+        <label>الصور (حتى 5 صور)</label><input name="img" type="file" accept="image/*" multiple>
+        <div class="thumbs pthumbs"></div>
         <button class="btn block">نشر</button>
       </form>
-      <div id="actsList"></div>
+      <button class="btn ghost xls" style="margin-bottom:12px">تصدير Excel</button>
+      <div class="plist"></div>
+    </section>
+
+    <!-- التصريحات الصحفية -->
+    <section id="tab-press" class="hide">
+      <form class="card pf" data-kind="press">
+        <h2>نشر تصريح صحفي جديد</h2>
+        <label>العنوان</label><input name="title" required>
+        <label>التاريخ</label><input name="date" type="date" required>
+        <label>التفاصيل</label><textarea name="text"></textarea>
+        <label>الصور (حتى 5 صور)</label><input name="img" type="file" accept="image/*" multiple>
+        <div class="thumbs pthumbs"></div>
+        <button class="btn block">نشر</button>
+      </form>
+      <button class="btn ghost xls" style="margin-bottom:12px">تصدير Excel</button>
+      <div class="plist"></div>
     </section>
 
     <!-- رمز الفورمة -->
@@ -156,10 +180,16 @@
     <section id="tab-staff" class="hide">
       <form class="card" id="sf">
         <h2>إضافة موظف</h2>
-        <p class="sub">الموظف يدخل بحساب Google (Gmail) الخاص بيه. أضف إيميله هنا حتى يتمكن من الدخول.</p>
+        <p class="sub">الموظف يدخل بحساب Google (Gmail) الخاص بيه. أضف إيميله وحدد صلاحياته: البريد، النشاطات، التصريحات الصحفية.</p>
         <div class="row">
           <div><label>الاسم</label><input id="st_name"></div>
           <div><label>إيميل Gmail</label><input id="st_email" type="email" required dir="ltr"></div>
+        </div>
+        <label>الصلاحيات</label>
+        <div class="perms">
+          <label class="ck"><input type="checkbox" id="st_mail" checked> البريد (الكتب ومراحلها)</label>
+          <label class="ck"><input type="checkbox" id="st_acts"> النشاطات</label>
+          <label class="ck"><input type="checkbox" id="st_press"> التصريحات الصحفية</label>
         </div>
         <button class="btn block">إضافة</button>
       </form>
@@ -178,19 +208,21 @@ const PUBLIC_URL = new URL("./", location.href).href;
 if (D.isDemo) $("#demo").classList.remove("hide");
 
 await D.init();
+let PERMS = null;
 D.onAuth(async (u) => {
-  const ok = u && (D.isDemo || await D.isStaff(u.email));
-  $("#loginView").classList.toggle("hide", !!ok);
+  PERMS = u ? await D.getPerms(u.email) : null;
+  const ok = !!(PERMS && (PERMS.mail || PERMS.acts || PERMS.press));
+  $("#loginView").classList.toggle("hide", ok);
   $("#app").classList.toggle("hide", !ok);
   if (u && !ok) {
     $("#loginMsg").innerHTML = `<div class="msg err">الحساب ${D.esc(u.email)} غير مخوّل. اطلب من المسؤول إضافته ثم أعد المحاولة.</div>`;
     await D.logout(); return;
   }
   if (ok) {
-    const owner = D.isDemo || u.email.toLowerCase() === OWNER_EMAIL;
-    document.querySelector('[data-tab="staff"]').classList.toggle("hide", !owner);
-    $("#who").textContent = u.email || "";
-    loadLetters();
+    const show = { letters: PERMS.mail, qr: PERMS.mail, acts: PERMS.acts, press: PERMS.press, staff: PERMS.owner };
+    document.querySelectorAll(".tabs button[data-tab]").forEach((b) => b.classList.toggle("hide", !show[b.dataset.tab]));
+    $("#who").textContent = (u.email || "") + (PERMS.owner ? " — المسؤول" : " — " + [PERMS.mail && "البريد", PERMS.acts && "النشاطات", PERMS.press && "التصريحات"].filter(Boolean).join(" و "));
+    document.querySelector(`.tabs button[data-tab="${PERMS.mail ? "letters" : PERMS.acts ? "acts" : "press"}"]`).click();
   }
 });
 $("#loginView").onsubmit = async (e) => {
@@ -203,8 +235,9 @@ $("#out").onclick = () => D.logout();
 /* تبويبات */
 document.querySelectorAll(".tabs button[data-tab]").forEach((b) => (b.onclick = () => {
   document.querySelectorAll(".tabs button[data-tab]").forEach((x) => x.classList.toggle("on", x === b));
-  ["letters", "acts", "qr", "staff"].forEach((t) => $("#tab-" + t).classList.toggle("hide", t !== b.dataset.tab));
-  if (b.dataset.tab === "acts") loadActs();
+  ["letters", "acts", "press", "qr", "staff"].forEach((t) => $("#tab-" + t).classList.toggle("hide", t !== b.dataset.tab));
+  if (b.dataset.tab === "letters") loadLetters();
+  if (b.dataset.tab === "acts" || b.dataset.tab === "press") loadPosts(b.dataset.tab);
   if (b.dataset.tab === "qr") drawForm();
   if (b.dataset.tab === "staff") loadStaff();
 }));
@@ -341,45 +374,117 @@ $("#delBtn").onclick = async () => {
   await D.letterDelete(cur); await loadLetters(); $("#back").click();
 };
 
-/* ---------- النشاطات ---------- */
-$("#a_date").value = D.today();
-async function loadActs() {
-  const list = await D.activitiesAll();
-  $("#actsList").innerHTML = list.map((a) => `<article class="card act">
+/* ---------- النشاطات والتصريحات ---------- */
+const actImgs = (a) => a.images?.length ? a.images : (a.image ? [a.image] : []);
+const KIND = { acts: { col: "activities", one: "النشاط" }, press: { col: "press", one: "التصريح" } };
+const pics = { acts: [], press: [] };
+async function loadPosts(kind) {
+  const sec = $("#tab-" + kind), list = await D.postsAll(KIND[kind].col);
+  sec.querySelector(".plist").innerHTML = list.length ? list.map((a) => `<article class="card act">
     <div class="d">${D.fmtDate(a.date)}</div><h3>${D.esc(a.title)}</h3>
-    ${a.image ? `<img src="${a.image}" alt="">` : ""}<p>${D.esc(a.text)}</p>
-    <button class="btn danger sm" data-del="${a.id}" style="margin-top:10px">حذف</button></article>`).join("");
-  $("#actsList").onclick = async (e) => {
-    const id = e.target.dataset.del; if (!id || !confirm("حذف النشاط؟")) return;
-    await D.activityDelete({ id }); loadActs();
-  };
+    ${actImgs(a).length ? `<div class="gal g${Math.min(actImgs(a).length, 3)}">${actImgs(a).map((x) => `<img src="${x}" alt="">`).join("")}</div>` : ""}<p>${D.esc(a.text)}</p>
+    <button class="btn danger sm" data-del="${a.id}" style="margin-top:10px">حذف</button></article>`).join("") : '<div class="card empty">لا يوجد منشور بعد.</div>';
 }
-$("#af").onsubmit = async (e) => {
-  e.preventDefault();
-  const btn = e.target.querySelector("button"); btn.disabled = true;
+document.querySelectorAll("form.pf").forEach((form) => {
+  const kind = form.dataset.kind, sec = $("#tab-" + kind), th = form.querySelector(".pthumbs");
+  form.elements.date.value = D.today();
+  const render = () => th.innerHTML = pics[kind].map((p, i) => `<div><img src="${p}" alt=""><button type="button" data-i="${i}" title="حذف">×</button></div>`).join("");
+  th.onclick = (e) => { const i = e.target.dataset.i; if (i !== undefined) { pics[kind].splice(+i, 1); render(); } };
+  form.elements.img.onchange = async (e) => {
+    for (const f of [...e.target.files]) {
+      if (pics[kind].length >= 5) { alert("الحد الأعلى 5 صور"); break; }
+      pics[kind].push(await D.compressImage(f, 900, 0.62));
+    }
+    e.target.value = ""; render();
+  };
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector("button.block"); btn.disabled = true;
+    try {
+      await D.postSave(KIND[kind].col, { title: form.elements.title.value.trim(), date: form.elements.date.value, text: form.elements.text.value.trim(),
+        images: pics[kind].slice(0, 5), createdAt: new Date().toISOString() });
+      form.reset(); pics[kind] = []; render(); form.elements.date.value = D.today(); loadPosts(kind);
+    } catch (err) { alert("تعذّر النشر: " + err.message); }
+    btn.disabled = false;
+  };
+  sec.querySelector(".plist").onclick = async (e) => {
+    const id = e.target.dataset.del; if (!id || !confirm("حذف " + KIND[kind].one + "؟")) return;
+    await D.postDelete(KIND[kind].col, { id }); loadPosts(kind);
+  };
+});
+
+/* ---------- تصدير Excel ---------- */
+const STATUS_AR = { done: "مكتمل", late: "متأخر", active: "قيد المتابعة" };
+async function exportExcel(btn) {
+  if (!window.XLSX) return alert("تعذّر تحميل أداة Excel، تأكد من الإنترنت.");
+  btn.disabled = true;
   try {
-    const f = $("#a_img").files[0];
-    await D.activitySave({ title: $("#a_title").value.trim(), date: $("#a_date").value, text: $("#a_text").value.trim(),
-      image: f ? await D.compressImage(f) : "", createdAt: new Date().toISOString() });
-    e.target.reset(); $("#a_date").value = D.today(); loadActs();
-  } catch (err) { alert("تعذّر النشر: " + err.message); }
+    const [ls, acts, press] = await Promise.all([PERMS.mail ? D.lettersAll() : [], PERMS.acts ? D.postsAll("activities") : [], PERMS.press ? D.postsAll("press") : []]);
+    ls.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    const letterRows = ls.map((l, i) => {
+      const st = [...(l.stages || [])].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+      const last = st.at(-1) || {};
+      return {
+        "ت": i + 1, "اسم صاحب الطلب": l.citizenName || "", "رقم الهاتف": l.phone || "",
+        "العدد": l.number || "", "تاريخ الصدور": l.date || "", "نوع الطلب": l.type || "",
+        "الجهة المرسل إليها": l.destination || "", "الموضوع": l.subject || "",
+        "الحالة": STATUS_AR[statusOf(l)], "المرحلة الحالية": last.title || "", "مكان الكتاب الآن": last.location || "",
+        "تاريخ آخر مرحلة": last.date || "", "التاريخ المتوقع للإكمال": l.expectedDate || "",
+        "عدد المراحل": st.length, "صورة الكتاب": l.imageId ? `نعم (${l.pageCount || 1})` : "لا",
+      };
+    });
+    const stageRows = [];
+    ls.forEach((l) => [...(l.stages || [])].sort((a, b) => (a.date || "").localeCompare(b.date || "")).forEach((s, i) =>
+      stageRows.push({ "اسم صاحب الطلب": l.citizenName || "", "العدد": l.number || "", "رقم المرحلة": i + 1,
+        "المرحلة": s.title || "", "مكان الكتاب": s.location || "", "التاريخ": s.date || "", "ملاحظة": s.note || "" })));
+    const pressRows = press.map((a, i) => ({ "ت": i + 1, "التاريخ": a.date || "", "العنوان": a.title || "", "النص": a.text || "", "عدد الصور": actImgs(a).length }));
+    const actRows = acts.map((a, i) => ({ "ت": i + 1, "التاريخ": a.date || "", "العنوان": a.title || "", "التفاصيل": a.text || "", "عدد الصور": actImgs(a).length }));
+    const wb = XLSX.utils.book_new();
+    const add = (rows, name, empty) => {
+      const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ "": empty }]);
+      const keys = Object.keys(rows[0] || { "": empty });
+      ws["!cols"] = keys.map((k) => ({ wch: Math.min(50, Math.max(k.length + 2, ...rows.map((r) => String(r[k] ?? "").length + 2))) }));
+      XLSX.utils.book_append_sheet(wb, ws, name);
+    };
+    if (PERMS.mail) { add(letterRows, "الكتب", "لا توجد كتب"); add(stageRows, "مراحل الكتب", "لا توجد مراحل"); }
+    if (PERMS.acts) add(actRows, "النشاطات", "لا توجد نشاطات");
+    if (PERMS.press) add(pressRows, "التصريحات الصحفية", "لا توجد تصريحات");
+    wb.Workbook = { Views: [{ RTL: true }] };
+    XLSX.writeFile(wb, `بريد-النائب-${D.today()}.xlsx`);
+  } catch (err) { console.error(err); alert("تعذّر التصدير: " + err.message); }
   btn.disabled = false;
-};
+}
+document.querySelectorAll(".xls").forEach((b) => (b.onclick = () => exportExcel(b)));
 
 /* ---------- الموظفون ---------- */
 async function loadStaff() {
   const list = await D.staffAll();
-  $("#staffList").innerHTML = `<div class="item" style="cursor:default"><div><div class="n">المسؤول</div><div class="m" dir="ltr">${OWNER_EMAIL}</div></div></div>` +
-    list.map((m) => `<div class="item" style="cursor:default"><div><div class="n">${D.esc(m.name || "موظف")}</div><div class="m" dir="ltr">${D.esc(m.email)}</div></div>
-    <button class="btn danger sm" data-rm="${D.esc(m.email)}">إزالة</button></div>`).join("");
+  $("#staffList").innerHTML = `<div class="item" style="cursor:default"><div><div class="n">المسؤول</div><div class="m" dir="ltr">${OWNER_EMAIL}</div></div><span class="badge">كل الصلاحيات</span></div>` +
+    list.map((m) => { const p = m.perms || {}; return `<div class="item" style="cursor:default"><div>
+      <div class="n">${D.esc(m.name || "موظف")}</div><div class="m" dir="ltr">${D.esc(m.email)}</div>
+      <div class="perms">
+        <label class="ck"><input type="checkbox" data-em="${D.esc(m.email)}" data-p="mail" ${p.mail ? "checked" : ""}> البريد</label>
+        <label class="ck"><input type="checkbox" data-em="${D.esc(m.email)}" data-p="acts" ${p.acts ? "checked" : ""}> النشاطات</label>
+        <label class="ck"><input type="checkbox" data-em="${D.esc(m.email)}" data-p="press" ${p.press ? "checked" : ""}> التصريحات</label>
+      </div></div>
+    <button class="btn danger sm" data-rm="${D.esc(m.email)}">إزالة</button></div>`; }).join("");
+  window.__staff = list;
 }
 $("#staffList").onclick = async (e) => {
   const em = e.target.dataset.rm; if (!em || !confirm("إزالة صلاحية " + em + "؟")) return;
   await D.staffRemove(em); loadStaff();
 };
+$("#staffList").onchange = async (e) => {
+  const em = e.target.dataset.em; if (!em) return;
+  const m = (window.__staff || []).find((x) => x.email === em); if (!m) return;
+  const perms = { ...(m.perms || {}), [e.target.dataset.p]: e.target.checked };
+  try { await D.staffAdd(em, m.name, perms); loadStaff(); } catch (err) { alert("تعذّر الحفظ: " + err.message); }
+};
 $("#sf").onsubmit = async (e) => {
   e.preventDefault();
-  try { await D.staffAdd($("#st_email").value, $("#st_name").value.trim()); e.target.reset(); loadStaff(); }
+  const perms = { mail: $("#st_mail").checked, acts: $("#st_acts").checked, press: $("#st_press").checked };
+  if (!perms.mail && !perms.acts && !perms.press) return alert("اختر صلاحية واحدة على الأقل");
+  try { await D.staffAdd($("#st_email").value, $("#st_name").value.trim(), perms); e.target.reset(); $("#st_mail").checked = true; loadStaff(); }
   catch (err) { alert("تعذّرت الإضافة: " + err.message); }
 };
 

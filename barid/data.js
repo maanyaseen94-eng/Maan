@@ -89,21 +89,26 @@ export async function logout() {
 }
 
 /* ---------- الموظفون ---------- */
-export async function isStaff(email) {
-  if (isDemo) return true;
+/** يرجع صلاحيات المستخدم {mail, acts, owner} أو null إذا غير مخوّل */
+export async function getPerms(email) {
+  if (isDemo) return { mail: true, acts: true, press: true, owner: true };
   email = (email || "").toLowerCase();
-  if (email === OWNER_EMAIL) return true;
-  try { const s = await fs.getDoc(fs.doc(db, "staff", email)); return s.exists(); }
-  catch { return false; }
+  if (email === OWNER_EMAIL) return { mail: true, acts: true, press: true, owner: true };
+  try {
+    const s = await fs.getDoc(fs.doc(db, "staff", email));
+    if (!s.exists()) return null;
+    const p = s.data().perms || {};
+    return { mail: !!p.mail, acts: !!p.acts, press: !!p.press, owner: false };
+  } catch { return null; }
 }
 export async function staffAll() {
   if (isDemo) return Object.values(col("staff"));
   const s = await fs.getDocs(fs.collection(db, "staff"));
   return s.docs.map((d) => ({ email: d.id, ...d.data() }));
 }
-export async function staffAdd(email, name) {
+export async function staffAdd(email, name, perms) {
   email = email.trim().toLowerCase();
-  const v = { email, name: name || "", addedAt: new Date().toISOString() };
+  const v = { email, name: name || "", perms: { mail: !!perms?.mail, acts: !!perms?.acts, press: !!perms?.press }, addedAt: new Date().toISOString() };
   if (isDemo) return put("staff", email, v);
   await fs.setDoc(fs.doc(db, "staff", email), v);
 }
@@ -173,22 +178,24 @@ export async function imageDelete(id) {
   await fs.deleteDoc(fs.doc(db, "images", id));
 }
 
-/* ---------- النشاطات ---------- */
-export async function activitiesAll() {
+/* ---------- المنشورات: النشاطات (activities) والتصريحات الصحفية (press) ---------- */
+export async function postsAll(c) {
   let list;
-  if (isDemo) list = Object.values(col("activities"));
-  else { const s = await fs.getDocs(fs.collection(db, "activities")); list = s.docs.map((d) => ({ id: d.id, ...d.data() })); }
-  return list.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  if (isDemo) list = Object.values(col(c));
+  else { const s = await fs.getDocs(fs.collection(db, c)); list = s.docs.map((d) => ({ id: d.id, ...d.data() })); }
+  return list.sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.createdAt || "").localeCompare(a.createdAt || ""));
 }
-export async function activitySave(a) {
+export async function postSave(c, a) {
+  if (JSON.stringify(a).length > 1000000) throw new Error("حجم الصور كبير، قلّل عدد الصور");
   a.id = a.id || uid();
-  if (isDemo) put("activities", a.id, a);
-  else await fs.setDoc(fs.doc(db, "activities", a.id), a);
+  if (isDemo) put(c, a.id, a);
+  else await fs.setDoc(fs.doc(db, c, a.id), a);
 }
-export async function activityDelete(a) {
-  if (isDemo) put("activities", a.id, null);
-  else await fs.deleteDoc(fs.doc(db, "activities", a.id));
+export async function postDelete(c, a) {
+  if (isDemo) put(c, a.id, null);
+  else await fs.deleteDoc(fs.doc(db, c, a.id));
 }
+export const activitiesAll = () => postsAll("activities");
 
 /* ---------- عرض ---------- */
 export function fmtDate(iso) {
