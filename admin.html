@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>إدارة البريد</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0e4a38">
+<link rel="icon" href="logo.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Noto+Kufi+Arabic:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="qrcode.js"></script>
+<style>
+  .hero{padding-bottom:58px}
+  .hero h1{font-size:24px}
+  .bar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+  .bar input{flex:1}
+  .item{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+  .item:last-child{border:0}
+  .item .n{font-weight:700}
+  .item .m{font-size:12px;color:var(--muted)}
+  .stage{display:flex;gap:8px;align-items:flex-start;justify-content:space-between;background:var(--bg);border-radius:12px;padding:9px 12px;margin-bottom:6px}
+  .stage .m{font-size:12px;color:var(--muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer}
+  .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .filters{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+  .filters .chip.on{background:var(--green);color:#fff;border-color:var(--green)}
+  .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .thumbs div{position:relative}
+  .thumbs img{width:84px;height:110px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
+  .thumbs button{position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;border:0;background:var(--red);color:#fff;cursor:pointer;line-height:1}
+  canvas{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);margin-top:10px}
+  .tabs{max-width:520px}
+</style>
+</head>
+<body>
+<div id="demo" class="demo hide">وضع تجريبي — البيانات محفوظة على هذا الجهاز فقط لحين ربط Firebase</div>
+<header class="hero"><div class="wrap">
+  <img src="logo.png" alt="">
+  <div><small>لوحة إدارة البريد والنشاطات</small><h1>مكتب النائب عدي عواد الحسين</h1></div>
+</div></header>
+
+<main class="wrap">
+  <!-- دخول -->
+  <form id="loginView" class="card hide" style="margin-top:-30px;position:relative;z-index:2">
+    <h2>تسجيل الدخول</h2>
+    <p class="sub">خاص بموظفي السكرتارية.</p>
+    <label>البريد الإلكتروني</label><input id="em" type="email" autocomplete="username">
+    <label>كلمة المرور</label><input id="pw" type="password" autocomplete="current-password">
+    <button class="btn block">دخول</button>
+    <div id="loginMsg"></div>
+  </form>
+
+  <div id="app" class="hide">
+    <nav class="tabs">
+      <button data-tab="letters" class="on">الكتب</button>
+      <button data-tab="acts">النشاطات</button>
+      <button data-tab="qr">رمز الفورمة</button>
+      <button id="out" style="flex:0 0 auto;padding:10px 14px" title="خروج">خروج</button>
+    </nav>
+
+    <!-- الكتب -->
+    <section id="tab-letters">
+      <div id="listView">
+        <div class="bar">
+          <input id="q" placeholder="بحث بالاسم أو العدد أو الجهة…">
+          <button class="btn" id="newBtn">+ كتاب جديد</button>
+        </div>
+        <div class="filters" id="filters">
+          <button class="chip on" data-f="all">الكل</button>
+          <button class="chip" data-f="active">قيد المتابعة</button>
+          <button class="chip" data-f="late">متأخرة</button>
+          <button class="chip" data-f="done">مكتملة</button>
+        </div>
+        <div class="card" id="list"><div class="empty">جارِ التحميل…</div></div>
+      </div>
+
+      <div id="editView" class="hide">
+        <button class="btn ghost sm" id="back">→ رجوع للقائمة</button>
+        <form class="card" id="lf" style="margin-top:10px">
+          <h2 id="lfTitle">كتاب جديد</h2>
+          <p class="sub">المواطن يبحث بالاسم الثلاثي أو برقم هاتفه، فاكتبهما بدقة.</p>
+          <div class="row">
+            <div><label>اسم صاحب الطلب (الثلاثي على الأقل)</label><input id="l_name" required></div>
+            <div><label>رقم الهاتف</label><input id="l_phone" inputmode="tel" placeholder="07xxxxxxxxx"></div>
+          </div>
+          <div class="row">
+            <div><label>العدد</label><input id="l_number"></div>
+            <div><label>تاريخ الصدور</label><input id="l_date" type="date" required></div>
+          </div>
+          <div class="row">
+            <div><label>نوع الطلب</label><select id="l_type"></select></div>
+            <div><label>الجهة المرسل إليها</label><input id="l_dest" placeholder="مثال: وزارة الصحة / دائرة صحة البصرة"></div>
+          </div>
+          <label>الموضوع (يظهر للمواطن)</label><input id="l_subject">
+          <label>صورة الكتاب (حتى 3 صفحات — تظهر للمواطن)</label>
+          <input id="l_img" type="file" accept="image/*" multiple>
+          <div id="thumbs" class="thumbs"></div>
+          <div class="row">
+            <div><label>التاريخ المتوقع للإكمال</label><input id="l_expected" type="date"></div>
+            <div><label>الحالة</label><select id="l_status"><option value="active">قيد المتابعة</option><option value="done">مكتمل</option></select></div>
+          </div>
+
+          <h2 style="margin-top:18px">مراحل الكتاب</h2>
+          <p class="sub">آخر مرحلة تظهر للمواطن كـ "المرحلة الحالية".</p>
+          <div id="stages"></div>
+          <div style="border:1.5px dashed var(--line);border-radius:12px;padding:10px 12px;margin-top:8px">
+            <label style="margin-top:0">إضافة مرحلة</label>
+            <input id="s_title" placeholder="عنوان المرحلة" list="presets">
+            <datalist id="presets"></datalist>
+            <div class="chips" id="presetChips"></div>
+            <div class="row">
+              <div><label>مكان الكتاب</label><input id="s_loc" placeholder="مثال: مكتب المدير العام"></div>
+              <div><label>التاريخ</label><input id="s_date" type="date"></div>
+            </div>
+            <label>ملاحظة تظهر للمواطن (اختياري)</label><input id="s_note">
+            <button type="button" class="btn gold sm" id="addStage" style="margin-top:10px">+ إضافة المرحلة</button>
+          </div>
+
+          <button class="btn block" id="saveBtn">حفظ الكتاب</button>
+          <div id="lfMsg"></div>
+          <div class="actions">
+            <a class="btn ghost sm hide" id="waBtn" target="_blank" rel="noopener">إرسال رابط المتابعة واتساب</a>
+            <button type="button" class="btn danger sm hide" id="delBtn">حذف الكتاب</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- النشاطات -->
+    <section id="tab-acts" class="hide">
+      <form class="card" id="af">
+        <h2>نشر نشاط جديد</h2>
+        <label>العنوان</label><input id="a_title" required>
+        <label>التاريخ</label><input id="a_date" type="date" required>
+        <label>التفاصيل</label><textarea id="a_text"></textarea>
+        <label>صورة (اختياري)</label><input id="a_img" type="file" accept="image/*">
+        <button class="btn block">نشر</button>
+      </form>
+      <div id="actsList"></div>
+    </section>
+
+    <!-- رمز الفورمة -->
+    <section id="tab-qr" class="hide">
+      <div class="card">
+        <h2>الفورمة مع رمز QR الثابت</h2>
+        <p class="sub">الرمز يفتح صفحة المواطنين: <b id="pubUrl" dir="ltr"></b><br>استخدم هذه الصورة كخلفية للفورمة في Word أو اطبعها مباشرة.</p>
+        <button class="btn" id="dlPng">تحميل الفورمة (PNG)</button>
+        <a class="btn ghost" id="openPub" target="_blank" rel="noopener">فتح صفحة المواطنين</a>
+        <canvas id="cv"></canvas>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script type="module">
+import { LETTER_TYPES, STAGE_PRESETS } from "./config.js";
+import * as D from "./data.js";
+
+const $ = (s) => document.querySelector(s);
+const PUBLIC_URL = new URL("./", location.href).href;
+if (D.isDemo) $("#demo").classList.remove("hide");
+
+await D.init();
+D.onAuth((u) => {
+  $("#loginView").classList.toggle("hide", !!u);
+  $("#app").classList.toggle("hide", !u);
+  if (u) loadLetters();
+});
+if (D.isDemo) { $("#em").value = "demo"; $("#pw").value = "demo"; }
+$("#loginView").onsubmit = async (e) => {
+  e.preventDefault();
+  try { await D.login($("#em").value.trim(), $("#pw").value); }
+  catch { $("#loginMsg").innerHTML = '<div class="msg err">البريد أو كلمة المرور غير صحيحة.</div>'; }
+};
+$("#out").onclick = () => D.logout();
+
+/* تبويبات */
+document.querySelectorAll(".tabs button[data-tab]").forEach((b) => (b.onclick = () => {
+  document.querySelectorAll(".tabs button[data-tab]").forEach((x) => x.classList.toggle("on", x === b));
+  ["letters", "acts", "qr"].forEach((t) => $("#tab-" + t).classList.toggle("hide", t !== b.dataset.tab));
+  if (b.dataset.tab === "acts") loadActs();
+  if (b.dataset.tab === "qr") drawForm();
+}));
+
+/* ---------- الكتب ---------- */
+let letters = [], filter = "all", cur = null, oldKeys = [], pages = [], pagesChanged = false;
+LETTER_TYPES.forEach((t) => $("#l_type").insertAdjacentHTML("beforeend", `<option>${t.name}</option>`));
+STAGE_PRESETS.forEach((p) => {
+  $("#presets").insertAdjacentHTML("beforeend", `<option value="${p}">`);
+  $("#presetChips").insertAdjacentHTML("beforeend", `<button type="button" class="chip">${p}</button>`);
+});
+$("#presetChips").onclick = (e) => { if (e.target.matches(".chip")) $("#s_title").value = e.target.textContent; };
+
+const addDays = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const statusOf = (l) => l.status === "done" ? "done" : (l.expectedDate && l.expectedDate < D.today() ? "late" : "active");
+
+async function loadLetters() {
+  letters = await D.lettersAll();
+  letters.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+  renderList();
+}
+function renderList() {
+  const q = D.normalizeName($("#q").value) || $("#q").value.trim();
+  const rows = letters.filter((l) => (filter === "all" || statusOf(l) === filter) &&
+    (!q || [D.normalizeName(l.citizenName), l.number, l.destination, l.subject].join(" ").includes(q)));
+  const lbl = { done: '<span class="badge">مكتمل</span>', late: '<span class="badge late">متأخر</span>', active: '<span class="badge active">قيد المتابعة</span>' };
+  $("#list").innerHTML = rows.length ? rows.map((l) => {
+    const last = (l.stages || []).at(-1);
+    return `<div class="item" data-id="${l.id}"><div>
+      <div class="n">${D.esc(l.citizenName)}${l.number ? ` · <span class="m">العدد ${D.esc(l.number)}</span>` : ""}</div>
+      <div class="m">${D.esc(l.type || "")} ← ${D.esc(l.destination || "—")} · الآن: ${D.esc(last?.location || last?.title || "—")}</div>
+    </div>${lbl[statusOf(l)]}</div>`;
+  }).join("") : '<div class="empty">لا توجد كتب.</div>';
+}
+$("#q").oninput = renderList;
+$("#filters").onclick = (e) => {
+  if (!e.target.dataset.f) return; filter = e.target.dataset.f;
+  document.querySelectorAll("#filters .chip").forEach((c) => c.classList.toggle("on", c === e.target)); renderList();
+};
+$("#list").onclick = (e) => { const it = e.target.closest(".item"); if (it) openEditor(letters.find((l) => l.id === it.dataset.id)); };
+$("#newBtn").onclick = () => openEditor(null);
+$("#back").onclick = () => { $("#editView").classList.add("hide"); $("#listView").classList.remove("hide"); };
+
+function openEditor(l) {
+  const t = D.today();
+  cur = l ? structuredClone(l) : { date: t, type: LETTER_TYPES[0].name, status: "active",
+    expectedDate: addDays(t, LETTER_TYPES[0].days),
+    stages: [{ id: D.uid(), title: "صدور الكتاب", location: "مكتب النائب", date: t, note: "" }] };
+  oldKeys = l?.keys || [];
+  $("#lfTitle").textContent = l ? "تعديل الكتاب" : "كتاب جديد";
+  $("#l_name").value = cur.citizenName || ""; $("#l_phone").value = cur.phone || "";
+  $("#l_number").value = cur.number || ""; $("#l_date").value = cur.date || t;
+  $("#l_type").value = cur.type; $("#l_dest").value = cur.destination || "";
+  $("#l_subject").value = cur.subject || ""; $("#l_expected").value = cur.expectedDate || "";
+  $("#l_status").value = cur.status || "active";
+  $("#s_title").value = ""; $("#s_loc").value = ""; $("#s_note").value = ""; $("#s_date").value = t;
+  $("#lfMsg").innerHTML = "";
+  $("#delBtn").classList.toggle("hide", !l); updateWa();
+  pages = []; pagesChanged = false; $("#l_img").value = ""; renderThumbs();
+  if (cur.imageId) D.imageGet(cur.imageId).then((d) => { if (d && !pagesChanged) { pages = d.pages || []; renderThumbs(); } });
+  renderStages();
+  $("#listView").classList.add("hide"); $("#editView").classList.remove("hide"); scrollTo(0, 0);
+}
+function syncTypeDays() {
+  const ty = LETTER_TYPES.find((x) => x.name === $("#l_type").value);
+  if (ty && $("#l_date").value) $("#l_expected").value = addDays($("#l_date").value, ty.days);
+}
+$("#l_type").onchange = syncTypeDays;
+$("#l_date").onchange = () => { if (!oldKeys.length) syncTypeDays(); };
+
+function renderThumbs() {
+  $("#thumbs").innerHTML = pages.map((p, i) => `<div><img src="${p}" alt=""><button type="button" data-i="${i}" title="حذف">×</button></div>`).join("");
+}
+$("#thumbs").onclick = (e) => { const i = e.target.dataset.i; if (i !== undefined) { pages.splice(+i, 1); pagesChanged = true; renderThumbs(); } };
+$("#l_img").onchange = async (e) => {
+  for (const f of [...e.target.files]) {
+    if (pages.length >= 3) { alert("الحد الأعلى 3 صفحات"); break; }
+    pages.push(await D.compressImage(f, 1400, 0.7)); pagesChanged = true;
+  }
+  e.target.value = ""; renderThumbs();
+};
+
+function renderStages() {
+  cur.stages.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+  $("#stages").innerHTML = cur.stages.map((s, i) => `<div class="stage"><div>
+    <b>${i + 1}. ${D.esc(s.title)}</b>${i === cur.stages.length - 1 ? ' <span class="badge active">الحالية</span>' : ""}
+    <div class="m">${D.esc(s.location || "")} · ${D.fmtDate(s.date)}${s.note ? " · " + D.esc(s.note) : ""}</div>
+  </div><button type="button" class="btn danger sm" data-del="${s.id}">حذف</button></div>`).join("")
+    || '<div class="m">لا توجد مراحل بعد.</div>';
+}
+$("#stages").onclick = (e) => { const id = e.target.dataset.del; if (id) { cur.stages = cur.stages.filter((s) => s.id !== id); renderStages(); } };
+$("#addStage").onclick = () => {
+  const title = $("#s_title").value.trim(); if (!title) return $("#s_title").focus();
+  cur.stages.push({ id: D.uid(), title, location: $("#s_loc").value.trim(), date: $("#s_date").value || D.today(), note: $("#s_note").value.trim() });
+  if (title === "إكمال الطلب") $("#l_status").value = "done";
+  $("#s_title").value = ""; $("#s_loc").value = ""; $("#s_note").value = ""; renderStages();
+};
+
+function updateWa() {
+  const p = D.normalizePhone($("#l_phone").value).replace(/^0/, "964");
+  const ok = oldKeys.length && p.length >= 12;
+  $("#waBtn").classList.toggle("hide", !ok);
+  if (ok) $("#waBtn").href = `https://wa.me/${p}?text=` + encodeURIComponent(
+    `مكتب النائب المهندس عدي عواد الحسين\nيمكنكم متابعة كتابكم عبر الرابط:\n${PUBLIC_URL}\nبإدخال اسمكم الثلاثي أو رقم هاتفكم.`);
+}
+
+$("#lf").onsubmit = async (e) => {
+  e.preventDefault();
+  const name = $("#l_name").value.trim(), phone = $("#l_phone").value.trim();
+  const msg = $("#lfMsg");
+  if (D.normalizeName(name).split(" ").length < 3) { msg.innerHTML = '<div class="msg err">اكتب الاسم الثلاثي على الأقل.</div>'; return; }
+  if (phone && D.normalizePhone(phone).length < 10) { msg.innerHTML = '<div class="msg err">رقم الهاتف غير صحيح.</div>'; return; }
+  Object.assign(cur, { citizenName: name, phone, number: $("#l_number").value.trim(), date: $("#l_date").value,
+    type: $("#l_type").value, destination: $("#l_dest").value.trim(), subject: $("#l_subject").value.trim(),
+    expectedDate: $("#l_expected").value, status: $("#l_status").value });
+  cur.createdAt = cur.createdAt || new Date().toISOString();
+  const b = $("#saveBtn"); b.disabled = true;
+  try {
+    if (pagesChanged) {
+      if (pages.length) { cur.imageId = cur.imageId || D.randomId(); await D.imageSave(cur.imageId, pages); }
+      else if (cur.imageId) { await D.imageDelete(cur.imageId); cur.imageId = ""; }
+      cur.pageCount = pages.length; pagesChanged = false;
+    }
+    const saved = await D.letterSave(cur, oldKeys);
+    oldKeys = saved.keys; cur = saved; updateWa(); $("#delBtn").classList.remove("hide");
+    $("#lfTitle").textContent = "تعديل الكتاب";
+    msg.innerHTML = '<div class="msg">تم الحفظ ✓ — يظهر الآن للمواطن عند البحث باسمه أو رقم هاتفه.</div>';
+    await loadLetters();
+  } catch (err) { console.error(err); msg.innerHTML = '<div class="msg err">تعذّر الحفظ: ' + D.esc(err.message) + "</div>"; }
+  b.disabled = false;
+};
+$("#delBtn").onclick = async () => {
+  if (!confirm("حذف هذا الكتاب نهائياً؟")) return;
+  await D.letterDelete(cur); await loadLetters(); $("#back").click();
+};
+
+/* ---------- النشاطات ---------- */
+$("#a_date").value = D.today();
+async function loadActs() {
+  const list = await D.activitiesAll();
+  $("#actsList").innerHTML = list.map((a) => `<article class="card act">
+    <div class="d">${D.fmtDate(a.date)}</div><h3>${D.esc(a.title)}</h3>
+    ${a.image ? `<img src="${a.image}" alt="">` : ""}<p>${D.esc(a.text)}</p>
+    <button class="btn danger sm" data-del="${a.id}" style="margin-top:10px">حذف</button></article>`).join("");
+  $("#actsList").onclick = async (e) => {
+    const id = e.target.dataset.del; if (!id || !confirm("حذف النشاط؟")) return;
+    await D.activityDelete({ id }); loadActs();
+  };
+}
+$("#af").onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector("button"); btn.disabled = true;
+  try {
+    const f = $("#a_img").files[0];
+    await D.activitySave({ title: $("#a_title").value.trim(), date: $("#a_date").value, text: $("#a_text").value.trim(),
+      image: f ? await D.compressImage(f) : "", createdAt: new Date().toISOString() });
+    e.target.reset(); $("#a_date").value = D.today(); loadActs();
+  } catch (err) { alert("تعذّر النشر: " + err.message); }
+  btn.disabled = false;
+};
+
+/* ---------- الفورمة مع QR ---------- */
+$("#pubUrl").textContent = PUBLIC_URL; $("#openPub").href = PUBLIC_URL;
+async function drawForm() {
+  const img = new Image(); img.src = "letterhead.jpg"; await img.decode();
+  await document.fonts.load('700 30px "Noto Kufi Arabic"');
+  const S = 2, cv = $("#cv"), W = img.width, H = img.height;
+  cv.width = W * S; cv.height = H * S;
+  const c = cv.getContext("2d"); c.imageSmoothingQuality = "high";
+  c.drawImage(img, 0, 0, W * S, H * S);
+  const qr = qrcode(0, "M"); qr.addData(PUBLIC_URL); qr.make();
+  const n = qr.getModuleCount(), mod = Math.floor((176 * S) / n), size = mod * n;
+  const cx = 920 * S, x0 = cx - size / 2, y0 = 1202 * S, pad = 10 * S;
+  c.fillStyle = "#fff"; c.strokeStyle = "#141414"; c.lineWidth = 2 * S;
+  c.beginPath(); c.roundRect(x0 - pad, y0 - pad, size + 2 * pad, size + 2 * pad, 10 * S); c.fill(); c.stroke();
+  c.fillStyle = "#000";
+  for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) c.fillRect(x0 + k * mod, y0 + r * mod, mod, mod);
+  c.direction = "rtl"; c.textAlign = "center"; c.textBaseline = "top";
+  let ty = y0 + size + pad + 8 * S;
+  c.font = `700 ${15 * S}px "Noto Kufi Arabic"`; c.fillText("امسح الرمز لمتابعة كتابك", cx, ty);
+  c.font = `500 ${12 * S}px "Noto Kufi Arabic"`; c.fillText("ونشاطات النائب", cx, ty + 30 * S);
+}
+$("#dlPng").onclick = () => { const a = document.createElement("a"); a.download = "فورمة-مع-QR.png"; a.href = $("#cv").toDataURL("image/png"); a.click(); };
+</script>
+</body>
+</html>

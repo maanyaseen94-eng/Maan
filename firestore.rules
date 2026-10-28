@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ضع هنا إيميلات موظفي السكرتارية المسموح لهم بالإدارة
+    function isStaff() {
+      return request.auth != null &&
+        request.auth.token.email in ['staff1@example.com', 'staff2@example.com'];
+    }
+    // ملخص عام لكل مواطن: يُقرأ فقط برمز البحث (الاسم + الهاتف)، ولا يمكن تصفّح القائمة
+    match /public/{key} {
+      allow get: if true;
+      allow list: if false;
+      allow write: if isStaff();
+    }
+    // الكتب الكاملة (الموضوع، الهاتف...) للموظفين فقط
+    match /letters/{id} {
+      allow read, write: if isStaff();
+    }
+    // صور الكتب: تُفتح فقط برمزها العشوائي الموجود في نتيجة البحث
+    match /images/{id} {
+      allow get: if true;
+      allow list: if false;
+      allow write: if isStaff();
+    }
+    // النشاطات يراها الجميع
+    match /activities/{id} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+  }
+}
