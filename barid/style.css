@@ -1,7 +1,7 @@
 :root{
-  --ink:#1c2420; --muted:#5f6b65; --line:#e3ddd0; --bg:#f6f3ec; --card:#fff;
-  --green:#0e4a38; --green2:#16654d; --gold:#b98a2e; --gold-soft:#f4ead3;
-  --red:#a8322a; --ok:#1d7a4f; --warn:#b26b00;
+  --ink:#2a1a1e; --muted:#6e5d61; --line:#e6dbd6; --bg:#f7f2ef; --card:#fff;
+  --green:#6e1a2f; --green2:#8c2840; --gold:#b98a2e; --gold-soft:#f6ead5;
+  --red:#a8322a; --ok:#2f7a4f; --warn:#b26b00;
   --r:16px; --shadow:0 1px 2px rgba(20,30,25,.06),0 6px 24px rgba(20,30,25,.06);
 }
 *{box-sizing:border-box}
@@ -12,18 +12,16 @@ a{color:var(--green2)}
 .wrap{max-width:760px;margin:0 auto;padding:0 16px}
 
 /* رأس */
-.hero{background:linear-gradient(160deg,var(--green) 0%,#0a3528 100%);color:#fff;padding:26px 0 70px;position:relative;overflow:hidden}
-.hero::after{content:"";position:absolute;inset:auto -10% -60px -10%;height:120px;background:var(--bg);border-radius:50% 50% 0 0}
-.hero .wrap{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;position:relative;z-index:1}
-.hero img{width:104px;height:auto;flex:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
-.hero .gold,.hero small,.hero h1,.hero .roles{background:linear-gradient(180deg,#f6d98a 0%,#d4af37 55%,#b3862a 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero small{display:block;font-size:14px;font-weight:700}
-.hero h1{font-family:"Amiri",serif;font-size:34px;line-height:1.25;margin:0;font-weight:700}
-.hero .roles{font-size:13px;font-weight:700;margin-top:2px}
-/* الاسم والصفة بخط الفورمة الرسمية (صورة الخط نفسه) بالذهبي */
-.hero .wrap>div{position:relative;width:min(92vw,400px);aspect-ratio:780/237;margin-top:4px;
-  background:linear-gradient(180deg,#f8de8c 0%,#d6b03c 50%,#b0842a 100%);
-  -webkit-mask:url(name-mask.png) center/contain no-repeat;mask:url(name-mask.png) center/contain no-repeat}
+.hero{color:#fff;padding:30px 0 78px;position:relative;overflow:hidden;
+  background:url(gold-lines.svg) center/100% 100% no-repeat,url(waves.svg) center/100% 100% no-repeat,
+  radial-gradient(120% 90% at 50% 45%,#8a2440 0%,#6e1a2f 45%,#4a0f1f 100%)}
+.hero::after{content:"";position:absolute;inset:auto -10% -60px -10%;height:120px;background:var(--bg);border-radius:50% 50% 0 0;box-shadow:0 -2px 0 rgba(214,176,74,.55)}
+.hero .wrap{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;position:relative;z-index:1}
+.hero img{width:112px;height:112px;flex:none;border-radius:50%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+/* الاسم والصفة بخط الفورمة الرسمية (صورة الخط نفسه) بالأبيض */
+.hero .wrap>div{position:relative;width:min(92vw,420px);aspect-ratio:780/237;margin-top:2px;background:#fff;
+  -webkit-mask:url(name-mask.png) center/contain no-repeat;mask:url(name-mask.png) center/contain no-repeat;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
 .hero .wrap>div>*{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* تبويبات */
