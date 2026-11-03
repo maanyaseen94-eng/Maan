@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شعبة الصادر والوارد — سكرتارية النائب المهندس عدي عواد الحسين</title>
+<link rel="icon" id="fav">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+:root{
+  --p:#7a1f2b; --pd:#561520; --pl:#f7ecee; --pm:#a33a4a; --gold:#c9a45c;
+  --bg:#f5f1f2; --card:#fff; --tx:#2b1d20; --mut:#7d6b6f; --bd:#e7dadd;
+  --ok:#1f7a4d; --okl:#e3f4ea; --warn:#a86a00; --warnl:#fff3dc; --info:#1d5f9a; --infol:#e4effa; --late:#b3261e; --latel:#fde8e6;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Cairo',Tahoma,sans-serif;background:var(--bg);color:var(--tx);font-size:14px}
+button,input,select,textarea{font-family:inherit;font-size:14px}
+.hidden{display:none!important}
+/* login */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(circle at 20% 10%,#9b2c3d 0,transparent 45%),linear-gradient(135deg,var(--pd),var(--p))}
+.lbox{background:#fff;border-radius:18px;padding:34px 30px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;border-top:6px solid var(--gold)}
+.emb{width:110px;height:110px;border-radius:50%;margin:0 auto 12px;display:block;object-fit:cover;background:var(--p);border:3px solid var(--gold);box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.lbox h1{font-size:17px;margin:0 0 4px;color:var(--p);line-height:1.6}
+.lbox .sub{font-size:12.5px;color:var(--mut);line-height:1.8;margin-bottom:6px}
+.lbox .unit{display:inline-block;background:var(--pl);color:var(--p);padding:3px 14px;border-radius:20px;font-weight:700;font-size:13px;margin-bottom:20px}
+.fld{text-align:right;margin-bottom:12px}
+.fld label{display:block;font-weight:600;font-size:13px;margin-bottom:4px;color:var(--tx)}
+.fld input,.fld select,.fld textarea{width:100%;padding:9px 11px;border:1px solid var(--bd);border-radius:9px;background:#fff;outline:none;transition:.15s}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(122,31,43,.12)}
+.fld textarea{min-height:70px;resize:vertical}
+.req{color:var(--late)}
+.btn{border:0;border-radius:9px;padding:9px 16px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap}
+.btn-p{background:var(--p);color:#fff}.btn-p:hover{background:var(--pd)}
+.btn-g{background:var(--gold);color:#2b1d20}.btn-g:hover{filter:brightness(.95)}
+.btn-o{background:#fff;color:var(--p);border:1px solid var(--p)}.btn-o:hover{background:var(--pl)}
+.btn-l{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45)}.btn-l:hover{background:rgba(255,255,255,.12)}
+.btn-d{background:var(--latel);color:var(--late)}.btn-d:hover{background:#f9d3cf}
+.btn-s{padding:5px 10px;font-size:12.5px;border-radius:7px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.err{color:var(--late);font-size:13px;min-height:20px;margin:6px 0}
+.demo{font-size:12px;color:var(--warn);background:var(--warnl);border-radius:8px;padding:6px 10px;margin-top:14px}
+/* header */
+header{background:linear-gradient(135deg,var(--pd),var(--p));color:#fff;padding:14px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:4px solid var(--gold)}
+header .emb{width:58px;height:58px;margin:0;border-width:2px}
+.ht{flex:1;min-width:230px}
+.ht h1{margin:0;font-size:17px;line-height:1.5}
+.ht .s1{font-size:12.5px;opacity:.88}
+.ht .s2{display:inline-block;margin-top:3px;background:var(--gold);color:var(--pd);font-weight:800;font-size:12px;padding:1px 12px;border-radius:20px}
+.hu{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.uchip{background:rgba(255,255,255,.14);padding:6px 12px;border-radius:20px;font-size:13px}
+.uchip b{color:var(--gold)}
+main{max-width:1500px;margin:0 auto;padding:18px}
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.st{background:var(--card);border-radius:12px;padding:12px 14px;border-right:5px solid var(--p);box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer;transition:.15s}
+.st:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.st .n{font-size:25px;font-weight:800;color:var(--p)}
+.st .l{font-size:12.5px;color:var(--mut);font-weight:600}
+.st.w{border-color:var(--warn)}.st.w .n{color:var(--warn)}
+.st.i{border-color:var(--info)}.st.i .n{color:var(--info)}
+.st.o{border-color:var(--ok)}.st.o .n{color:var(--ok)}
+.st.x{border-color:var(--late)}.st.x .n{color:var(--late)}
+.st.g{border-color:var(--gold)}.st.g .n{color:#8a6a24}
+/* toolbar */
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.tabs{display:flex;background:#fff;border-radius:11px;padding:4px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.tab{border:0;background:transparent;padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:700;color:var(--mut)}
+.tab.on{background:var(--p);color:#fff}
+.tab .cnt{background:rgba(0,0,0,.1);border-radius:10px;padding:0 7px;font-size:12px;margin-right:4px}
+.tab.on .cnt{background:rgba(255,255,255,.2)}
+.sp{flex:1}
+/* filters */
+.filters{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.fh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fh .q{flex:1;min-width:220px;padding:9px 12px;border:1px solid var(--bd);border-radius:9px;outline:none}
+.fh .q:focus{border-color:var(--p)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:12px}
+.fgrid .fld{margin:0}
+.fgrid .fld label{font-size:12px;color:var(--mut)}
+.fgrid .fld input,.fgrid .fld select{padding:7px 9px;font-size:13px}
+.chk{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;cursor:pointer;padding-top:20px}
+.chk input{width:17px;height:17px;accent-color:var(--p)}
+/* table */
+.tw{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+th{background:var(--pl);color:var(--p);font-weight:800;font-size:12.5px;padding:10px 8px;text-align:right;white-space:nowrap;border-bottom:2px solid var(--p);position:sticky;top:0}
+td{padding:9px 8px;border-bottom:1px solid #f0e7e9;font-size:13px;vertical-align:middle}
+tbody tr{cursor:pointer;transition:.1s}
+tbody tr:hover{background:#fbf6f7}
+tr.lt{background:#fff6f5}
+tr.lt td:first-child{box-shadow:inset -4px 0 0 var(--late)}
+.num{font-weight:800;color:var(--p);white-space:nowrap}
+.bn{white-space:nowrap;font-weight:700}
+.trunc{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.b{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}
+.b-wip{background:var(--warnl);color:var(--warn)}
+.b-wait{background:var(--infol);color:var(--info)}
+.b-done{background:var(--okl);color:var(--ok)}
+.b-late{background:var(--late);color:#fff}
+.b-cat{background:var(--pl);color:var(--p)}
+.b-in{background:#efe7d6;color:#7a5a16}
+small.d{display:block;color:var(--mut);font-size:11.5px}
+.muted{color:var(--mut)}
+.empty{padding:40px;text-align:center;color:var(--mut)}
+.acts{display:flex;gap:4px}
+.pager{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px;flex-wrap:wrap}
+.pager .pi{font-weight:700;color:var(--mut)}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(43,16,21,.55);display:flex;align-items:flex-start;justify-content:center;padding:30px 12px;z-index:50;overflow:auto}
+.md{background:#fff;border-radius:16px;width:100%;max-width:860px;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:pop .18s}
+.md.sm{max-width:440px}
+@keyframes pop{from{transform:scale(.97);opacity:0}to{transform:none;opacity:1}}
+.mh{background:var(--p);color:#fff;padding:13px 20px;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--gold)}
+.mh h3{margin:0;font-size:16px}
+.mx{background:transparent;border:0;color:#fff;font-size:24px;cursor:pointer;line-height:1}
+.mb{padding:18px 20px}
+.mf{padding:12px 20px;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-start;flex-wrap:wrap}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0 14px}
+.full{grid-column:1/-1}
+.pfx{display:flex;align-items:stretch;direction:rtl}
+.pfx span{background:var(--pl);color:var(--p);font-weight:800;padding:9px 11px;border:1px solid var(--bd);border-left:0;border-radius:0 9px 9px 0;white-space:nowrap}
+.pfx input{border-radius:9px 0 0 9px!important}
+.hint{font-size:11.5px;color:var(--mut);margin-top:3px}
+.serialbox{background:var(--pl);border:1px dashed var(--p);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.serialbox b{color:var(--p);font-size:18px}
+.flist{list-style:none;padding:0;margin:6px 0 0}
+.flist li{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#faf6f7;border-radius:8px;margin-bottom:5px;font-size:13px}
+.flist li .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.flist li .sz{color:var(--mut);font-size:11.5px}
+.drop{border:2px dashed var(--bd);border-radius:10px;padding:14px;text-align:center;color:var(--mut);cursor:pointer;transition:.15s}
+.drop:hover,.drop.ov2{border-color:var(--p);background:var(--pl);color:var(--p)}
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.di{background:#faf6f7;border-radius:9px;padding:8px 12px}
+.di .k{font-size:11.5px;color:var(--mut);font-weight:700}
+.di .v{font-weight:600;margin-top:2px;word-break:break-word}
+.sec{font-weight:800;color:var(--p);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+.sec:after{content:"";flex:1;height:1px;background:var(--bd)}
+.inc{border:1px solid var(--bd);border-right:4px solid var(--gold);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.inc .ih{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.prev{background:#faf6f7;border-radius:10px;padding:10px 12px;margin-bottom:12px;border-right:4px solid var(--p);font-size:13px;line-height:1.9}
+.prev.bad{border-color:var(--late);color:var(--late)}
+/* toast / loading */
+#toasts{position:fixed;bottom:18px;left:18px;display:flex;flex-direction:column;gap:8px;z-index:90}
+.toast{background:#2b1d20;color:#fff;padding:11px 16px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.25);font-size:13.5px;max-width:360px;display:flex;gap:10px;align-items:center;animation:pop .2s}
+.toast.e{background:var(--late)}.toast.s{background:var(--ok)}.toast.w{background:#8a4b00}
+#loading{position:fixed;inset:0;background:rgba(255,255,255,.7);z-index:80;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;font-weight:700;color:var(--p)}
+.spin{width:42px;height:42px;border:4px solid var(--pl);border-top-color:var(--p);border-radius:50%;animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.utbl{min-width:0}
+.utbl td,.utbl th{padding:7px}
+@media(max-width:700px){
+  main{padding:10px}
+  header{padding:12px}
+  .ht h1{font-size:15px}
+  .bar .tabs{width:100%}.tab{flex:1}
+  .mb{padding:14px}
+}
+@media print{header,.bar,.filters,.pager,.mf,.mx{display:none!important}.ov{position:static;background:none;padding:0}.md{box-shadow:none}}
+</style>
+</head>
+<body>
+
+<!-- ===== تسجيل الدخول ===== -->
+<section id="login">
+  <div class="lbox">
+    <img class="emb" alt="النائب المهندس عدي عواد الحسين">
+    <h1>سكرتارية النائب المهندس عدي عواد الحسين</h1>
+    <div class="sub">رئيس اللجنة المالية النيابية<br>رئيس كتلة الصادقون النيابية</div>
+    <div class="unit">شعبة الصادر والوارد</div>
+    <form id="lform" autocomplete="on">
+      <div class="fld"><label>اسم المستخدم</label><input id="lu" autocomplete="username" required></div>
+      <div class="fld"><label>كلمة المرور</label><input id="lp" type="password" autocomplete="current-password" required></div>
+      <div class="err" id="lerr"></div>
+      <button class="btn btn-p" style="width:100%;justify-content:center;padding:11px" id="lbtn">دخول</button>
+    </form>
+    <div class="demo hidden" id="demoNote">وضع تجريبي: البيانات محفوظة على هذا الجهاز فقط — أضف إعدادات Firebase في الملف للعمل المشترك.<br>الدخول الأول: admin / 123456</div>
+  </div>
+</section>
+
+<!-- ===== التطبيق ===== -->
+<section id="app" class="hidden">
+  <header>
+    <img class="emb" alt="النائب المهندس عدي عواد الحسين">
+    <div class="ht">
+      <h1>سكرتارية النائب المهندس عدي عواد الحسين</h1>
+      <div class="s1">رئيس اللجنة المالية النيابية · رئيس كتلة الصادقون النيابية</div>
+      <span class="s2">شعبة الصادر والوارد</span>
+    </div>
+    <div class="hu">
+      <span class="uchip" id="uchip"></span>
+      <button class="btn btn-l btn-s hidden" id="bUsers">المستخدمون</button>
+      <button class="btn btn-l btn-s hidden" id="bSettings">إعدادات تلكرام</button>
+      <button class="btn btn-l btn-s" id="bPass">كلمة المرور</button>
+      <button class="btn btn-l btn-s" id="bOut">خروج</button>
+    </div>
+  </header>
+  <main>
+    <div class="stats" id="stats"></div>
+    <div class="bar">
+      <div class="tabs">
+        <button class="tab on" data-tab="sadir">الكتب الصادرة <span class="cnt" id="cS">0</span></button>
+        <button class="tab" data-tab="warid">الكتب الواردة <span class="cnt" id="cW">0</span></button>
+      </div>
+      <div class="sp"></div>
+      <button class="btn btn-p ed" id="bAddS">＋ كتاب صادر</button>
+      <button class="btn btn-g ed" id="bAddW">＋ كتاب وارد</button>
+      <button class="btn btn-o" id="bXls">⬇ تصدير Excel</button>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="tw"><table id="tbl"></table></div>
+    <div class="pager" id="pager"></div>
+  </main>
+</section>
+
+<div id="modal"></div>
+<div id="cmodal"></div>
+<div id="toasts"></div>
+<div id="loading" class="hidden"><div class="spin"></div><div id="loadTxt">جاري الحفظ...</div></div>
+
+<datalist id="dlEntity"></datalist><datalist id="dlOffice"></datalist><datalist id="dlResp"></datalist><datalist id="dlReq"></datalist><datalist id="dlOut"></datalist>
+
+<script>
+const EMBLEM="data:image/webp;base64,UklGRrgXAABXRUJQVlA4WAoAAAAQAAAA2wAA2wAAQUxQSHwBAAABCcVt2ziwrf2Xvl7fEf2fAN0VOpIhQSMzBJXM0RohKfNYIcvVA5pz9E2+kUsmJRWmpGaYkJaBBTaM1Gte4zlwHElu3HDyDxpfyQawXOiKmABHbCMp0g0VHTP3e112r4VDG+g5LY/tS/NZMdGw/KehU0+PFZYMDa0pOYSmlExCNygf6ATlBG0oeYX6KDuojSqAsqNKr4rqgIqoFpCFqqk7isJYxBo44nsW2+LdDMv3X0OrJ9Ech66yDNo+uezVxk2Cb6c4bN0LvZINpzW2Yx2wO6VwdPVsgY+f5hu5y0/wkYuhLnKjqIuOIGM6HbOM2Uzqyj4FWlCmfGM3J7+OgKfbHSuuuuD1loQo51ozMJEULm5ZDp9HCtcWuGZjIp89wrjfYvVsgbzfrHZMgm3/yTC331i+4r6NHJoOXWWZ8CX6owiYhwstpMW8G3AuBnEqxG0Lzt3hoIwqCkBY7a3KaqZVVuuusBqFhdWWLKwmaF21XOuqwVtW7eQTUarCAlZQOCAWFgAA8F4AnQEq3ADcAD5hLJJGpCK/saYTC7vwDAlNuJma3f53/OMO+x7hBlpQCemUgNIUxBYf+YhfuVocZl+K7GUjvnfPbtn+U5AU8Hal/T+475jf731jeYfzwPMX+437M+6z/xP2592v9X9QD+ff5nra/QX/cD04/ZS/tv/X/dXDRfxe7j3if5rfd3uNnLPvN+585PGHgL+yN7VAP9dOKX8//xnsBfzX+uccdQI/l/9p9Dz6m9Fv0x/8PcQ/n39w/7Xrs+0L9vfZd/cg1czjMZzLNk5r040247+OsoI5ir+4ii+BU/6C2ngfLBq3quRzgMBpIbws3KCsYGkWjDAId4qSt3MMVCOZm7Eqsc+94O6p02CjNhun9Fk1zBzGDZlMzRw0S82qILfyq4uWHjpJJa/8t5XuLCO0FXPvKEfVuZu6O141kDLIX0FP65TZmudUnojuNafbTfBKDd/CeGaISBwE+MRnJ9/N1/C+9NHSMNmKtAlcTojDNsEiD5KnWJVee9ysfieJPzPks+kvQ9nanJo2NtxV09KkVdr29g+LKInJYkqJu717lSNtYq8e9mtPe6A0r9RJZOO6VyIE8P3EZeVE/5mxnI24QYWza7zFIXYQGKetHa6z84NRl7N5FBWdsoKVkQz5N4DKFgv9LVWOI5dFicnHpu/dPGDOh1fsTHB5D5clLovcixk3xlNJBqWHm6qEYBSn9kpT86zcvaHr/4yivzBdtNlEYlmy5+05rxBi/4pA0l/whk3eltXPBbWUTHdVhJwWw99kuQ4wHxMN3cg+38yVrG3KquTYE+wDYu6EniUrkY/rY+mtdlHuZSQfbJfyb1COPzH8A+lZkq6EDSlmLIPLkfU/CyhIIhtNaLgQGwNdSa1MkLYjL0qXnRphgIjKJ+/HAhUHsTDCieC6rCxmka6DoN0FqFfHAUqK5blYRhXd86QVal2kHfuOn4sxLKIyLo55Yj1PhY5k7PUfN2fa/IwB7nOrmzADrSPtZ893Z+MoNo+AMbelvrnZ6qQvqv4AAP7ZHwB+xGJ9tTij0IpRIgbJYmyDvjR2/W8YHQalg0ktXJH2BzyyVrsNZuO3+T4fif1RoHYBV1R+vGcnXnMWJvs4PYRlssjt9vfW8yMxexiTMtL3gLCs/4mnPX/E7//6o/+A/AfnjydxHrDkUrnYZJ6Ra7MJpmLN0+H+GG7ap6nijJpA0vgkhBts0zF/hhrK4dC1Dx79lGB2ZfDvu0rfLMydu97VeN1BsfDyNaUbz8X9qNbVcLxsTSkWVGN5wLK5ZTgxoBV3PB6IruByJn7V+6P//5S47BORXaeR3oKpM0jZfYCbQ4dxY2Ju2Gr4xy+2dxRXBC5PrQR4tOTRV75IB+zocWpV1LTzAYR1nieTbabjL6SPCp1poDcE55LpnCzNg0i1PqROr+8NNA0N/yEnWshrBqdoinaBTkltkXTK3OPdyU13jY2xAGXtp9a7bk2g88T+r4k2X5mi7l0krPpF9R/cBa9O1EC329CwwCeYXu3jwYexzdlPPDBiqMAK/M2SeBf2LIhR27xwVagZ9rJ265ZXB6aRj1KzR7f3KFfuRgLBxHDxEN1TqcqwLkJCQ9fPVNKRbMF4JdgTOE6Nqw4XtN53PPLHIWedJ8kGkD11Fzn2DEmGtOhVfW0qXJhMPk+Z8n978jx94DUMU0KX1Z8/D5sfrETB9/hFvWU+xc0svG9OKW/WFEWI+VOaEezXPp2NNvYifkOwXfYpDVHqqsUfxtz7b65c7s7mOIdvzXEgJHaVB1gzsUaJbHvxK651yS7jlbKhY//kAWNH51t+r74PlkRZfMQMTvVU9OwnFCj05Eo8u7KKwjcYAb0lvp2TC8lJPAbHlBaqvtviAB1nKpX3nXtaOUvQJI4Rng1XN4fpCne4U9UCR88EELGB7UBb8s16z79KrBPc6tWGdhkWvnOrGZnYAymlZtYVVDgQwiQ8EAeg+L4xdslgbuxXI/Z2KCuoV9rxr0JAi/EDfzn2zOfXQj2birN3x/2t7EEjpqDwjOZY3sEafNN5rDJWHsTNy3iAw//sV2uRMbHsv+qJ4vIAlV53m2IXPdHhJfIRh/j08hTzG8/AEsKqvZHwPis68nDpFJZadiu9nD2e3oEvisMCWEgyh9I7dOV17HHlir9dUfj9tfdIj8x2f9V5FRvjYZTxCdrncMVmb127INvl4A+sDw+33fQF72bxvtgH3n6Jq8O94FoMFLMIdsYu/Q/9WLHAMEUIoye2F1ez4AR/6DUOaMOVG5kE5ClXEEZnV5VICYgdUKgUSbllaMTYyAJyXp/8TdUlCi+gQusSpW+iA2P5z1cxED2IGtnikqdiMyN5Z8IvrnmN4OYY6glT1SnpopYFCC1k6m0V2er4oxgURtss9zspWCa762bsHn7s8BQr95ObYx9zL7JMb3H3vW/YR6FuTHYcM7L5BzeiTuN+5CL2C+NwdbrlKgGr9VrlG7f/w1LDNq7y/zVP7BX/97M57gOzQh7+rHaN9jXNxW4e/b+Db9u+TsBcEAdDw7vXsXmvngJmdKbTEkPJgZw6/MiNmFxxKr7hjESHOITrnycSKS2yTKSLVTag8FgBNcUcOWn02JlW+Zn03nPdmcnt1wkG94yQJpeqSQiMSgXHDfO1JUQ8m/pcRJjsVL5NytgR3Zs3jf7tpUmpDHoxlhTscg0slJOl0CeBE5VYW+1YfLLyGc/2Wbxq52nW0qqORvTBJGgwbe5H3fPJqmv5T+fIaPeL/VIXSl2zOt2NSfb/Mz6gwj3VWy4cNtAPd5xXXR5rgo/onhgP8X664gNv+Ssa5Lr67Vmp2zk1N8uFIizoY9+DPU0P0rtnLrRqOMnX9pleD6m4szbRCZv/S++9E7de8WehdtfYXvndrW7pmL93WHw5gmrmpV9XnIW9Rlark5kRbQ9oXsC06RbM2aZjbzquw/v7t2JQs9yWhloWKZUZfajdhEmZCW8iyFCX2VLXmhRwgfy5Tcv9RblJJLU645NijWmkvjPnW+jCh/VjsD3Fg41bsugn1r3j6/hCRU3WDpCsMJfHg7hqfjBNbp50ttlO3xGCGTS1NAqKRKbL5Qq2mrLFsQ8Iju/Ly2Ky9pwHx9yvbkjuNzdZLyXGBipJ2s6OTf2Cs7Z5jETlEWzfIHuhf9JZUxUxD2vfgB28KDzhjvwjwRERNfT1baOMvOsWY1rnsqSrRpo/O2IAOEhbvX4sE0RpGxBWp06vq9dm2EVItO5VlAyokM8yu58YdyuPQ6tkiweP68eG+RujuZ3u+dLPXGht5UEY86lHIXL6ldY6OYTzCdx7Y+HNCIGVGkp/JUSUebpe+eG6u1/U4mBAcuN10/XS7Zi/Xd+E4i5xsnNxuj+MycuauN2RDXundUW1WR9XOQcLoTCV7riRNtKDmfLTj8AZq40HSwKAJScMuvJaJd4pE58foD+ASPerxynkx3ldOKlQT9ByT0oURAhpYAtIfzs4qWR2GtVPDYEcjAObn/FuPmJs75ijUCpAnTHp5P8uHdlGnjoVD8LAeMlBw/7m/Z+gaIGgawrobqWNmtTVgcGAR5Bochz3nNqZ0LVsXcFeJL/5X/8jzs4yKnT3HcOnai5jOPc5mC0PDELISwj3nHmPm8kL6zJ+s9Y9Gu51Lz9q/746QiQ9yk+jpyXqv9woF+Oh5RwegGYOJtxYvOULbUIVnrqKG05AffZ02ilN7CLSfiSlJFBHI80HcLgqOJxsgciBQjFZcSRoSH+/N3h97TzE9BD4nus46UyUKZRyQ271NgORtzsieW7ZV7JKKeI+9YtUSCMfAhYj7Mwwc0Tki/tiwLDJ4Q4Y06OXjOo6vHIwfl0hZN4BMoGq6uYXLlBE7ZGt9KHHfw4Fi13Nld+GJBXQ7twiVt0jr0j1cQB8et/u/Rae9dZdGOveAolb2zszLa+/WCXJK0SDP2mK3c80juTdBSWkV6S74vjUWogi2NJPqQ0Gv+N32EAZ6rFEduihEjw8UhM/1E8AGxOU5zA7lt99P6YzLZ8bxdTrtweTGbL8xrx25JiE7tuv3G1JyMV0dA3tdhO7XizdK2xvHKC2PEVO+w6tMSS9WqCFgk7FPp1Qh3anYdCn1EmWyPSfawFrr4mgkJZnwjHZzwxFftrdcmwzO7zWtpxBLkMFiejxUf07fA6QnNypxy1w5T9gcQv6KxMP66L55JKDQMmO1o9iP6GuKxB35wf75N5RNFLINAZp7eg6G6nSuEZ9riDwbG4IwCwqKwM0MSpEoAd5MNKJJBSlJCt1KFoH5Qk0vZkAmUcOxCAcdM5E02x4ofdL6wsuH7apBcj/lGEKqrjICmPZPLohT0FPbcHcjrap5l/8uTtP9YwXb6RNlluExyZiei566+LvLt8eSyJtHcejPWS4rXMeFYeThxyz8bML5I/WvAQqOn5NYRJvZUT/6AeC+N2uTOsxAqwwXwvn9mUwJ+ssH5ouQBvp6e4M2umBj9SnYqduiCy9YrvWUzScoF3LkB+97nn5OPDTXmc9IAxytriynE3z00wakt7AToBG/PVo7rmT15t6QxlVpeEmR8xeqfS6+5ATVC9DajqbBKWYhlBW+IMvi7Ho26Kx7PzCCHQhX5Jifal/oG+79GlnynZMYpsBYT0xxebv6JGxszRLLbOUH6G80rK7ZJw4vS6JJ3fGqIb1fNf3XzhMIYjN8FWHp8nKmU+je3yYiKYpUXt0RurbJ8BVU6GH/1YydO550WjnOtnj5Vx52FeiOAKhlwNmfItuJxHPiqmBgbfukLJZkXOv07G5fyGyLSi5c1yd0lgGp2vNOybNBblhbaEzPql5n+RUaD/MXr6WzTNwqBTPtmo2PoiryqDFhHRR+2Gjh2w/rMSU5dQYgTZQrPOeZK1DHvyLU36nUjiohhJpfWPnR7ffISBjzIMHDjHwz7+pU43dH0QMeeQtMR4PnyQVQkyHg4qHljAMYcbEXTf5DWcOTani2Kf01yYDrowanjwPp0DVAURkeFSI/xPXvmA7irV/NyK97Av43MYbBBBp1Ij8UmQHQcvfFJqsmFgKLq97j1CJXY+c2xlqOq+WvZPkQy7j+UtM8a457RR46Q8NfqEIDOJ4iip8mb1vPZ865dbBOfkVumxpyhdYO2yYskDK0aYjzwdeJoFczV91VPLZN6nvGlzulUH4FzjzQXfvxS1p84rUKtKoqgwnt8Fb1PLzXby2vi21EHcTx6XC59+jnB82XAfPj/TkJpeENdoncjNjpif0JEkD7stjHEM3Yf1Aj/Ps6JgcUoHYueSrMQtbGY77ujUg4tVY1Vw7bF03HTbuhCgd7dkLTE45peX1E8NjqeIbuA8yMpLNW0Mpx14TRCHPSlvBN672v8iLYY/SBW1FG34x8AnT9bfoEPJ24jg4xa6aTCZDYq0KycBYLPUCZKA3hOjrEXlM6bHnkPhJxU8/qjsi2wraGBEB4qz7e0tdY95YKwtfPyz13E+H+Hfz56SggsCOmpyJl7JI+jGLNDsmShFFP5qSm9Nx3PWnOLM2RkUN/DfENnGUcN9zB0B04zYX1iTwLgVqRZTkijA4mGQTH3XQo0pa9OhgjJFHGluWHqveNPi06znZ/7h8OBQy8eHPqp2TlxKAJe493d0Cwv/dO8zoK5fxfTFVcnJ+oxZtxSFum28lSztImxQkDxwVStQ0fsRAEfjJmUBYQqmIdCJXYMM3zXYs6tY7ZKYWVY18mmuID3Ld8QqiwA1JnpxXzyHBDPzMLfQZPF6qWS/iSgqrApiMQnQs1AQDsnL3ij0LB8sbUhmKp/RPReTOcNyTZhatdh7rHNAt+uFuvOTlP/1HST8ohZaeCA7qqtwlWAf/cbDOzoQMWAV+6uhLokyvH2OHSDPClfXEgzJ4eqI9pKcD2R5T0gpWhyo8Hn2UDhWH8FhhYZVj8xKJkEdTJWdV9KsXfC4QyNYWJSXhYonODNgQD3fBYH+N7vj5tjChU2ra9r6Hfn5VLe98xhfLHmg1yXAvVRj86ml3WWQB6qR5mBM8U5rsHtGtsBBTe50Gw3NmAZ6xbs/ZG42Els7nzRpCg1tPcl3LwQIwq3zTTkF5IhngOetEPyLDtP879cM/r3F7d+EmLPT39SvH/2rWvnNucAjCNDj/BbDjnXxlnghRZ3uSrIVTwf49w/L0yYIY01FonBG6p9vS7FHyiRl8qks57jJQJlH3tNs5o1wjXiaF44ZqV81pQCA2rdIwZKzjX2XDFi8Oeky9NVURpNT9rwH/sqm6vc083IPE2Y1TNhy95gR+bI2+fkn8x60ORDZWIYqtcX/acc5b8Tx06Is8AlZhEkZRsoS29/4ZpcSv8efTcoJPjNxaz7QkxJGbxtxoNUI2T2kkxXRxmntEkeqko5Zwevrj0JWIHxkjdmAkPZf9i1WAc5wxtQVklrdPdmT0ffbgI8fKwZYOFdNzCszXT/QUuokjQzCxgdWyAvkKst3EBAiN3yUB19Uy2Irx/BBFyaUwqcqT1QthKQy7vLME8eNybEUHd2pZD+GqOTL5lHtLkYzyyPQNV2uInPQr9EJ1PeZ2aTR/eg591XOgsIYVCDp9VnYH+lNkmzlksdzYlYcO08/9l7488HuGp7Xo1uS80U+jEU1E7ksoKI/OlVq+c2vDGOVvTrsMKpsqBXWUGIlhfS5M7ON85mo6K7/xGH7iSnX3XKZcWY8Bm912cteXqwgVJMM3dcPvb5YUyGBBiZTnW+4ErXJ72dLpAetI4TFMFn+goTT8byjELNkM8Tw+VByZrqcS+fc7rTTHYtTFUi0skAPuVgW8I+Ewfhiu2Ey0LYuVYiQxjDZ8QbgcXmoKGpiEzCHBmSVKzLKCDLZmxt4mgANrvc8dM1svynMV8YN8jhENmT4Gsqt6J+2SSbGn7k+grXLIOY1jsaQnyNYR4ykqcfwWAsE9fMmHjF61TGADvmHIcjdXCp9KcW03p3eAf+y4niEHKmIwt8lN1hRbW98phN7H+cgLMsjQ56nJWhrdw3WKqSEtkcGyvtulNS9Jj/J56IBGeKbexzJD2OrZvTtVZXzJY/cSe6Cxr9KA09F1b11elI6YkRE4U0p6Bfehz1YHYCjX0/IXwutaOBlvUQzozw4gIlad7a2hvu1o+oHKb8ve+CmNhlT675NfIdg4Dp16SoYE+oaDz4PBunO1hUGkvcTXmKVQOBacGklhuduHbJzfWK5PhV4nlKNtb02ID9WbV7rvx8AACX6T+7IGgVuVy0YsV1/hZeqzyXksNz2ZcG3VyYEL49NdMtF7cuLc8UpllCZkQ+eaoYQcK/VcT6jJJfUzAfFLP50i6fa7YlqkM2dvodUYFd8PB5dXmOCdMGsopsGOFN+m2LrIrRMPAsX8SYJ2wPfz9UPzbxI8UPHh3KRx1qZYyyKM4xIApYgvk5gvK0C9OwACsHePj34vmXX/UJAvtuiFmijk5LAdZnWmEyOaU/XJPmhf7stAfO6aTUYmjZQ9HTknhqTmCWGr+rfw3bdGBiWk7BGN0AND2jRjfByPTBvBBbrtNFlbj+q7eK5LxJPBIiGoJ6W4eqBC79MfuAAAAAA=";
+document.querySelectorAll("img.emb").forEach(i=>i.src=EMBLEM); document.getElementById("fav").href=EMBLEM;
+/* =====================================================================
+   الإعدادات — ضع إعدادات مشروع Firebase هنا للعمل المشترك بين الموظفين.
+   إذا تُركت فارغة يعمل التطبيق بوضع تجريبي محلي (على هذا المتصفح فقط).
+   ===================================================================== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBqic7o_8gkTmFsvay3H7yLUaCIPagcbEg",
+  authDomain: "sadir-warid-oday.firebaseapp.com",
+  projectId: "sadir-warid-oday",
+  storageBucket: "sadir-warid-oday.firebasestorage.app",
+  messagingSenderId: "137168812459",
+  appId: "1:137168812459:web:3a82525733eaf9bab73aee"
+};
+/* بوت تلكرام لحفظ مرفقات الكتب (يمكن أيضاً ضبطها من داخل التطبيق: إعدادات تلكرام) */
+const TELEGRAM = { botToken: "", chatId: "" };
+
+/* ===================================================================== */
+const STATUSES = ['قيد الإجراء','بانتظار الإجابة','منجز'];
+const CATS = ['رئاسة الكتلة','رئاسة اللجنة','طلب مواطن','طلب مكتب'];
+const ROLES = {admin:'مدير النظام', editor:'محرر', viewer:'اطلاع'};
+const LATE_DAYS = 20, PER_PAGE = 10, PFX = 'س . ر / ';
+const MAX_FILE = 50*1024*1024, CHUNK = 700000;
+
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,9);
+const today = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const norm = s => String(s ?? '').toLowerCase().replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).trim();
+const fmtSize = b => b>1048576 ? (b/1048576).toFixed(1)+' MB' : Math.max(1,Math.round(b/1024))+' KB';
+const fmtDate = s => s ? s.split('-').reverse().join('/') : '—';
+function daysSince(s){ if(!s) return null; const d=new Date(s+'T00:00:00'), t=new Date(); t.setHours(0,0,0,0); return Math.floor((t-d)/864e5); }
+const isLate = r => r.status!=='منجز' && r.bookDate && daysSince(r.bookDate) > LATE_DAYS;
+const statusCls = s => s==='منجز'?'b-done':s==='بانتظار الإجابة'?'b-wait':'b-wip';
+async function hash(p){
+  const txt='sw-salt::'+p;
+  try{ const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+  catch(e){ let h=5381; for(const c of txt) h=((h<<5)+h+c.charCodeAt(0))|0; return 'f'+(h>>>0).toString(16); }
+}
+function ss(k,v){ try{ if(v===undefined) return sessionStorage.getItem(k); if(v===null) sessionStorage.removeItem(k); else sessionStorage.setItem(k,v);}catch(e){return null} }
+
+/* ===================== طبقة البيانات ===================== */
+const FireDB = {
+  mode:'firebase',
+  async init(){
+    firebase.initializeApp(FIREBASE_CONFIG);
+    this.fs = firebase.firestore();
+    try{ await firebase.auth().signInAnonymously(); }catch(e){ console.warn('anonymous auth:',e.message); }
+  },
+  subscribe(col,cb){ return this.fs.collection(col).onSnapshot(s=>cb(s.docs.map(d=>({id:d.id,...d.data()}))), e=>toast('خطأ في الاتصال: '+e.message,'e')); },
+  async add(col,data){ const id=uid(); await this.fs.collection(col).doc(id).set(data); return id; },
+  set(col,id,data){ return this.fs.collection(col).doc(id).set(data); },
+  update(col,id,data){ return this.fs.collection(col).doc(id).update(data); },
+  remove(col,id){ return this.fs.collection(col).doc(id).delete(); },
+  async get(col,id){ const d=await this.fs.collection(col).doc(id).get(); return d.exists?{id:d.id,...d.data()}:null; },
+  nextSerial(name){
+    const ref=this.fs.collection('meta').doc('counters');
+    return this.fs.runTransaction(async t=>{ const d=await t.get(ref); const n=((d.exists&&d.data()[name])||0)+1; t.set(ref,{[name]:n},{merge:true}); return n; });
+  },
+  putChunk(id,data){ return this.fs.collection('fileChunks').doc(id).set({data}); },
+  async getChunk(id){ const d=await this.fs.collection('fileChunks').doc(id).get(); return d.exists?d.data().data:''; },
+  delChunk(id){ return this.fs.collection('fileChunks').doc(id).delete(); }
+};
+const LocalDB = {
+  mode:'local', cache:{}, subs:{},
+  async init(){
+    this.db = await new Promise((res,rej)=>{ const r=indexedDB.open('sadir_warid_db',1);
+      r.onupgradeneeded=()=>{ r.result.createObjectStore('docs',{keyPath:'_key'}); r.result.createObjectStore('chunks'); };
+      r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
+    const all = await this._req('docs','readonly',st=>st.getAll());
+    for(const d of all){ const i=d._key.indexOf('/'); const col=d._key.slice(0,i), id=d._key.slice(i+1); const o={...d}; delete o._key; (this.cache[col]=this.cache[col]||{})[id]=o; }
+  },
+  _req(store,mode,fn){ return new Promise((res,rej)=>{ const tx=this.db.transaction(store,mode); const r=fn(tx.objectStore(store)); tx.oncomplete=()=>res(r&&r.result); tx.onerror=()=>rej(tx.error); }); },
+  _emit(col){ const list=Object.entries(this.cache[col]||{}).map(([id,d])=>({id,...d})); (this.subs[col]||[]).forEach(cb=>cb(list)); },
+  subscribe(col,cb){ (this.subs[col]=this.subs[col]||[]).push(cb); setTimeout(()=>this._emit(col)); return ()=>{}; },
+  async set(col,id,data){ await this._req('docs','readwrite',st=>st.put({_key:col+'/'+id,...data})); (this.cache[col]=this.cache[col]||{})[id]={...data}; this._emit(col); },
+  async add(col,data){ const id=uid(); await this.set(col,id,data); return id; },
+  async update(col,id,data){ const cur=(this.cache[col]||{})[id]||{}; await this.set(col,id,{...cur,...data}); },
+  async remove(col,id){ await this._req('docs','readwrite',st=>st.delete(col+'/'+id)); if(this.cache[col]) delete this.cache[col][id]; this._emit(col); },
+  async get(col,id){ const d=(this.cache[col]||{})[id]; return d?{id,...d}:null; },
+  async nextSerial(name){ const c=(await this.get('meta','counters'))||{}; const n=(c[name]||0)+1; const o={...c}; delete o.id; o[name]=n; await this.set('meta','counters',o); return n; },
+  putChunk(id,data){ return this._req('chunks','readwrite',st=>st.put(data,id)); },
+  async getChunk(id){ return (await this._req('chunks','readonly',st=>st.get(id)))||''; },
+  delChunk(id){ return this._req('chunks','readwrite',st=>st.delete(id)); }
+};
+const DB = (FIREBASE_CONFIG.apiKey && window.firebase) ? FireDB : LocalDB;
+
+/* ===================== تلكرام ===================== */
+function tgCfg(){
+  const t = TELEGRAM.botToken ? TELEGRAM : (S.settings||{});
+  return (t.botToken && t.chatId) ? {botToken:String(t.botToken).trim(), chatId:String(t.chatId).trim()} : null;
+}
+async function tgUpload(file, caption){
+  const c=tgCfg();
+  const fd=new FormData(); fd.append('chat_id',c.chatId); fd.append('document',file,file.name);
+  if(caption) fd.append('caption',caption.slice(0,1000));
+  const r=await fetch(`https://api.telegram.org/bot${c.botToken}/sendDocument`,{method:'POST',body:fd});
+  const j=await r.json(); if(!j.ok) throw new Error(j.description||'فشل الرفع إلى تلكرام');
+  const m=j.result, d=m.document||m.video||m.audio||(m.photo&&m.photo[m.photo.length-1])||{};
+  return {tgFileId:d.file_id, tgMsgId:m.message_id};
+}
+async function tgDownload(meta){
+  const c=tgCfg(); if(!c) throw new Error('إعدادات تلكرام غير مضبوطة');
+  const r=await fetch(`https://api.telegram.org/bot${c.botToken}/getFile?file_id=${encodeURIComponent(meta.tgFileId)}`);
+  const j=await r.json(); if(!j.ok) throw new Error(j.description||'تعذر جلب الملف (الحد الأقصى للتنزيل 20MB)');
+  const url=`https://api.telegram.org/file/bot${c.botToken}/${j.result.file_path}`;
+  try{ const b=await (await fetch(url)).blob(); saveBlob(b,meta.name); }
+  catch(e){ window.open(url,'_blank'); }
+}
+async function tgDelete(meta){
+  const c=tgCfg(); if(!c||!meta.tgMsgId) return;
+  try{ await fetch(`https://api.telegram.org/bot${c.botToken}/deleteMessage?chat_id=${encodeURIComponent(c.chatId)}&message_id=${meta.tgMsgId}`); }catch(e){}
+}
+
+/* ===================== المرفقات ===================== */
+const readURL = f => new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsDataURL(f); });
+async function uploadFiles(files, caption){
+  const out=[]; let i=0;
+  for(const f of files){
+    i++; $('#loadTxt').textContent=`جاري رفع المرفقات (${i} من ${files.length})...`;
+    const meta={id:uid(), name:f.name, type:f.type||'', size:f.size};
+    if(tgCfg()){
+      Object.assign(meta, await tgUpload(f, caption), {storage:'tg'});
+    } else {
+      if(f.size>15*1024*1024) throw new Error(`الملف «${f.name}» كبير؛ اضبط بوت تلكرام لرفع ملفات أكبر من 15MB`);
+      const data=await readURL(f); const n=Math.ceil(data.length/CHUNK);
+      for(let k=0;k<n;k++) await DB.putChunk(meta.id+'_'+k, data.slice(k*CHUNK,(k+1)*CHUNK));
+      Object.assign(meta,{storage:'db',chunks:n});
+    }
+    out.push(meta);
+  }
+  return out;
+}
+async function deleteFiles(list){
+  for(const m of list||[]){
+    if(m.storage==='tg') await tgDelete(m);
+    else for(let k=0;k<(m.chunks||0);k++) try{ await DB.delChunk(m.id+'_'+k); }catch(e){}
+  }
+}
+function saveBlob(b,name){ const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000); }
+async function downloadFile(meta){
+  loading(true,'جاري تنزيل الملف...');
+  try{
+    if(meta.storage==='tg') await tgDownload(meta);
+    else { let s=''; for(let k=0;k<meta.chunks;k++) s+=await DB.getChunk(meta.id+'_'+k); saveBlob(await (await fetch(s)).blob(), meta.name); }
+  }catch(e){ toast(e.message,'e'); } finally{ loading(false); }
+}
+const FILE_REG={};
+function filesHTML(list){
+  if(!list||!list.length) return '<span class="muted">لا توجد مرفقات</span>';
+  return '<ul class="flist">'+list.map(m=>{ FILE_REG[m.id]=m; return `<li><span>📎</span><span class="nm">${esc(m.name)}</span><span class="sz">${fmtSize(m.size)}${m.storage==='tg'?' · تلكرام':''}</span><button class="btn btn-o btn-s" onclick="downloadFile(FILE_REG['${m.id}'])">تنزيل</button></li>`; }).join('')+'</ul>';
+}
+
+/* ===================== الحالة ===================== */
+const S = { user:null, users:[], sadir:[], warid:[], settings:{}, tab:'sadir', page:{sadir:1,warid:1},
+  filters:{sadir:{},warid:{}}, showAdv:false, ready:{users:false}, lateShown:false };
+const can = () => S.user && (S.user.role==='admin'||S.user.role==='editor');
+
+/* ===================== أدوات الواجهة ===================== */
+function toast(msg,type='',ms=3800){ const t=document.createElement('div'); t.className='toast '+type; t.innerHTML=msg; $('#toasts').appendChild(t); setTimeout(()=>t.remove(),ms); return t; }
+function loading(on,txt){ $('#loading').classList.toggle('hidden',!on); if(txt) $('#loadTxt').textContent=txt; }
+function openModal(title, body, foot='', cls=''){
+  $('#modal').innerHTML=`<div class="ov" id="ov"><div class="md ${cls}"><div class="mh"><h3>${title}</h3><button class="mx" onclick="closeModal()">×</button></div><div class="mb">${body}</div>${foot?`<div class="mf">${foot}</div>`:''}</div></div>`;
+  $('#ov').addEventListener('mousedown',e=>{ if(e.target.id==='ov') closeModal(); });
+}
+function closeModal(){ $('#modal').innerHTML=''; PENDING.length=0; }
+function confirmBox(msg, okTxt='تأكيد', danger=true){
+  return new Promise(res=>{
+    $('#cmodal').innerHTML=`<div class="ov" style="z-index:70"><div class="md sm"><div class="mh"><h3>تأكيد</h3></div><div class="mb">${msg}</div><div class="mf"><button class="btn ${danger?'btn-d':'btn-p'}" id="cOk">${okTxt}</button><button class="btn btn-o" id="cNo">إلغاء</button></div></div></div>`;
+    $('#cOk').onclick=()=>{ $('#cmodal').innerHTML=''; res(true); };
+    $('#cNo').onclick=()=>{ $('#cmodal').innerHTML=''; res(false); };
+  });
+}
+const opts = (arr, sel, empty) => (empty!==undefined?`<option value="">${empty}</option>`:'') + arr.map(v=>`<option ${v===sel?'selected':''}>${esc(v)}</option>`).join('');
+
+/* ===================== تسجيل الدخول ===================== */
+$('#lform').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const u=$('#lu').value.trim().toLowerCase(), p=$('#lp').value;
+  if(!S.ready.users){ $('#lerr').textContent='جاري الاتصال بقاعدة البيانات، حاول بعد لحظة...'; return; }
+  const h=await hash(p);
+  const usr=S.users.find(x=>x.username===u && x.pass===h);
+  if(!usr){ $('#lerr').textContent='اسم المستخدم أو كلمة المرور غير صحيحة'; return; }
+  if(usr.active===false){ $('#lerr').textContent='هذا الحساب موقوف'; return; }
+  $('#lerr').textContent=''; $('#lp').value=''; ss('sw_uid',usr.id); enter(usr);
+});
+function enter(usr){
+  S.user=usr; $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+  $('#uchip').innerHTML=`${esc(usr.name||usr.username)} · <b>${ROLES[usr.role]}</b>`;
+  document.querySelectorAll('.ed').forEach(b=>b.classList.toggle('hidden',!can()));
+  $('#bUsers').classList.toggle('hidden',usr.role!=='admin');
+  $('#bSettings').classList.toggle('hidden',usr.role!=='admin');
+  render(); clearTimeout(S.lt); S.lt=setTimeout(lateAlert,1200);
+}
+function lateAlert(){
+  if(S.lateShown||!S.user) return;
+  const n=S.sadir.filter(isLate).length; if(!n) return;
+  S.lateShown=true;
+  const t=toast(`⚠ تنبيه: يوجد <b>${n}</b> كتاب متأخر (أكثر من ${LATE_DAYS} يوماً) <button class="btn btn-g btn-s" id="tLate">عرض</button>`,'w',9000);
+  t.querySelector('#tLate').onclick=()=>{ showLate(); t.remove(); };
+}
+function showLate(){ S.tab='sadir'; S.filters.sadir={late:true}; S.showAdv=true; S.page.sadir=1; render(); }
+$('#bOut').onclick=()=>{ ss('sw_uid',null); S.user=null; S.lateShown=false; $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); closeModal(); };
+
+/* ===================== الفلترة ===================== */
+const has = (v,q) => !q || norm(v).includes(norm(q));
+function filterSadir(){
+  const f=S.filters.sadir;
+  return S.sadir.filter(r=>{
+    if(f.q){ const inc=S.warid.filter(w=>w.outId===r.id).map(w=>w.inBookNo+' '+w.entity+' '+w.notes).join(' ');
+      const all=[r.serial,PFX+r.bookNo,r.bookNo,r.subject,r.entity,r.office,r.requester,r.responsible,r.category,r.status,r.notes,fmtDate(r.bookDate),(r.files||[]).map(x=>x.name).join(' '),inc].join(' ');
+      if(!has(all,f.q)) return false; }
+    if(f.serial && String(r.serial)!==String(f.serial).trim()) return false;
+    if(!has(r.bookNo,f.bookNo)||!has(r.subject,f.subject)||!has(r.entity,f.entity)||!has(r.office,f.office)||!has(r.requester,f.requester)||!has(r.responsible,f.responsible)||!has(r.notes,f.notes)) return false;
+    if(f.category && r.category!==f.category) return false;
+    if(f.status && r.status!==f.status) return false;
+    if(f.from && (!r.bookDate||r.bookDate<f.from)) return false;
+    if(f.to && (!r.bookDate||r.bookDate>f.to)) return false;
+    if(f.dueFrom && (!r.dueDate||r.dueDate<f.dueFrom)) return false;
+    if(f.dueTo && (!r.dueDate||r.dueDate>f.dueTo)) return false;
+    if(f.late && !isLate(r)) return false;
+    if(f.hasInc==='yes' && !S.warid.some(w=>w.outId===r.id)) return false;
+    if(f.hasInc==='no' && S.warid.some(w=>w.outId===r.id)) return false;
+    return true;
+  }).sort((a,b)=>(b.serial||0)-(a.serial||0));
+}
+function filterWarid(){
+  const f=S.filters.warid;
+  return S.warid.filter(w=>{
+    const o=S.sadir.find(x=>x.id===w.outId)||{};
+    if(f.q){ const all=[w.serial,w.inBookNo,PFX+w.outBookNo,w.outBookNo,w.entity,w.subject,w.notes,o.subject,o.entity,o.office,o.requester,o.responsible,fmtDate(w.inDate)].join(' '); if(!has(all,f.q)) return false; }
+    if(f.serial && String(w.serial)!==String(f.serial).trim()) return false;
+    if(!has(w.inBookNo,f.inBookNo)||!has(w.outBookNo,f.outBookNo)||!has(w.entity||o.entity,f.entity)||!has(w.subject||o.subject,f.subject)) return false;
+    if(f.category && o.category!==f.category) return false;
+    if(f.from && (!w.inDate||w.inDate<f.from)) return false;
+    if(f.to && (!w.inDate||w.inDate>f.to)) return false;
+    return true;
+  }).sort((a,b)=>(b.serial||0)-(a.serial||0));
+}
+
+/* ===================== العرض ===================== */
+function render(){
+  if(!S.user) return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===S.tab));
+  $('#cS').textContent=S.sadir.length; $('#cW').textContent=S.warid.length;
+  renderStats(); renderFilters(); renderTable(); fillDatalists();
+}
+function renderStats(){
+  const c=s=>S.sadir.filter(r=>r.status===s).length;
+  const late=S.sadir.filter(isLate).length;
+  $('#stats').innerHTML=`
+   <div class="st" data-k="all"><div class="n">${S.sadir.length}</div><div class="l">إجمالي الصادر</div></div>
+   <div class="st w" data-k="قيد الإجراء"><div class="n">${c('قيد الإجراء')}</div><div class="l">قيد الإجراء</div></div>
+   <div class="st i" data-k="بانتظار الإجابة"><div class="n">${c('بانتظار الإجابة')}</div><div class="l">بانتظار الإجابة</div></div>
+   <div class="st o" data-k="منجز"><div class="n">${c('منجز')}</div><div class="l">منجز</div></div>
+   <div class="st x" data-k="late"><div class="n">${late}</div><div class="l">متأخر (+${LATE_DAYS} يوم)</div></div>
+   <div class="st g" data-k="warid"><div class="n">${S.warid.length}</div><div class="l">إجمالي الوارد</div></div>`;
+  document.querySelectorAll('.st').forEach(el=>el.onclick=()=>{
+    const k=el.dataset.k;
+    if(k==='warid'){ S.tab='warid'; S.filters.warid={}; S.page.warid=1; }
+    else if(k==='late') return showLate();
+    else { S.tab='sadir'; S.filters.sadir=k==='all'?{}:{status:k}; S.page.sadir=1; if(k!=='all') S.showAdv=true; }
+    render();
+  });
+}
+function fInput(key,label,type='text',extra=''){ const v=S.filters[S.tab][key]??''; return `<div class="fld"><label>${label}</label><input type="${type}" data-f="${key}" value="${esc(v)}" ${extra}></div>`; }
+function fSelect(key,label,arr){ const v=S.filters[S.tab][key]??''; return `<div class="fld"><label>${label}</label><select data-f="${key}">${opts(arr,v,'الكل')}</select></div>`; }
+function renderFilters(){
+  const f=S.filters[S.tab], active=Object.values(f).filter(v=>v!==''&&v!==false&&v!=null).length;
+  let adv='';
+  if(S.tab==='sadir') adv = fInput('serial','العدد','number')+fInput('bookNo','رقم الكتاب (س . ر)')+fInput('subject','الموضوع')+fInput('entity','الجهة','text','list="dlEntity"')+fInput('office','اسم المكتب','text','list="dlOffice"')+fInput('requester','اسم صاحب الطلب','text','list="dlReq"')+fInput('responsible','المسؤول عن المتابعة','text','list="dlResp"')+fSelect('category','التصنيف',CATS)+fSelect('status','الحالة',STATUSES)+fInput('from','تاريخ الكتاب من','date')+fInput('to','تاريخ الكتاب إلى','date')+fInput('dueFrom','الاستحقاق من','date')+fInput('dueTo','الاستحقاق إلى','date')+fInput('notes','الملاحظات')
+    +`<div class="fld"><label>الوارد المرتبط</label><select data-f="hasInc"><option value="">الكل</option><option value="yes" ${f.hasInc==='yes'?'selected':''}>له وارد</option><option value="no" ${f.hasInc==='no'?'selected':''}>بدون وارد</option></select></div>`
+    +`<label class="chk"><input type="checkbox" data-f="late" ${f.late?'checked':''}> المتأخرة فقط</label>`;
+  else adv = fInput('serial','العدد','number')+fInput('inBookNo','رقم الكتاب الوارد')+fInput('outBookNo','رقم الكتاب الصادر')+fInput('subject','الموضوع')+fInput('entity','الجهة','text','list="dlEntity"')+fSelect('category','تصنيف الصادر',CATS)+fInput('from','تاريخ الوارد من','date')+fInput('to','تاريخ الوارد إلى','date');
+  $('#filters').innerHTML=`<div class="fh">
+     <input class="q" data-f="q" placeholder="🔍 بحث شامل في كل التفاصيل (رقم، موضوع، جهة، مكتب، اسم...)" value="${esc(f.q||'')}">
+     <button class="btn btn-o btn-s" id="bAdv">${S.showAdv?'▲ إخفاء الفلاتر':'▼ فلتر متقدم'}${active?` (${active})`:''}</button>
+     ${active?'<button class="btn btn-d btn-s" id="bClr">مسح الفلاتر</button>':''}
+   </div><div class="fgrid ${S.showAdv?'':'hidden'}">${adv}</div>`;
+  $('#bAdv').onclick=()=>{ S.showAdv=!S.showAdv; renderFilters(); };
+  if($('#bClr')) $('#bClr').onclick=()=>{ S.filters[S.tab]={}; S.page[S.tab]=1; render(); };
+  $('#filters').querySelectorAll('[data-f]').forEach(el=>{
+    const ev=(el.type==='text'||el.type==='number'||el.classList.contains('q'))?'input':'change';
+    el.addEventListener(ev,()=>{ S.filters[S.tab][el.dataset.f]= el.type==='checkbox'?el.checked:el.value; S.page[S.tab]=1; renderTable();
+      const a=Object.values(S.filters[S.tab]).filter(v=>v!==''&&v!==false&&v!=null).length; $('#bAdv').textContent=(S.showAdv?'▲ إخفاء الفلاتر':'▼ فلتر متقدم')+(a?` (${a})`:''); });
+  });
+}
+function delayCell(r){
+  const d=daysSince(r.bookDate);
+  if(r.status==='منجز') return '<span class="b b-done">✓ منجز</span>';
+  if(d==null) return '—';
+  if(d>LATE_DAYS) return `<span class="b b-late">متأخر ${d-LATE_DAYS} يوم</span><small class="d">مضى ${d} يوماً</small>`;
+  if(d<0) return '<span class="muted">لم يبدأ</span>';
+  return `<span class="muted">${d} / ${LATE_DAYS} يوم</span><small class="d">متبقي ${LATE_DAYS-d}</small>`;
+}
+function renderTable(){
+  const list = S.tab==='sadir'?filterSadir():filterWarid();
+  const pages=Math.max(1,Math.ceil(list.length/PER_PAGE));
+  if(S.page[S.tab]>pages) S.page[S.tab]=pages;
+  const p=S.page[S.tab], rows=list.slice((p-1)*PER_PAGE,p*PER_PAGE);
+  const ed=can();
+  if(S.tab==='sadir'){
+    $('#tbl').innerHTML=`<thead><tr><th>العدد</th><th>رقم الكتاب</th><th>تاريخ الكتاب</th><th>الموضوع</th><th>الجهة</th><th>التصنيف</th><th>اسم المكتب</th><th>صاحب الطلب</th><th>المسؤول</th><th>الحالة</th><th>الاستحقاق</th><th>أيام التأخير</th><th>الوارد</th><th>📎</th><th></th></tr></thead><tbody>`+
+    (rows.length?rows.map(r=>{ const ni=S.warid.filter(w=>w.outId===r.id).length; const dueOver=r.dueDate&&r.status!=='منجز'&&r.dueDate<today();
+      return `<tr class="${isLate(r)?'lt':''}" onclick="viewSadir('${r.id}')">
+      <td class="num">${r.serial}</td><td class="bn">${esc(PFX+r.bookNo)}</td><td>${fmtDate(r.bookDate)}</td>
+      <td class="trunc" title="${esc(r.subject)}">${esc(r.subject)}</td><td>${esc(r.entity)}</td>
+      <td><span class="b b-cat">${esc(r.category||'—')}</span></td><td>${esc(r.office||'—')}</td><td>${esc(r.requester||'—')}</td><td>${esc(r.responsible||'—')}</td>
+      <td><span class="b ${statusCls(r.status)}">${esc(r.status)}</span></td>
+      <td style="${dueOver?'color:var(--late);font-weight:700':''}">${fmtDate(r.dueDate)}</td>
+      <td>${delayCell(r)}</td>
+      <td>${ni?`<span class="b b-in">${ni} وارد</span>`:'<span class="muted">—</span>'}</td>
+      <td>${(r.files||[]).length||'—'}</td>
+      <td onclick="event.stopPropagation()"><div class="acts"><button class="btn btn-o btn-s" onclick="viewSadir('${r.id}')">عرض</button>${ed?`<button class="btn btn-o btn-s" onclick="formSadir('${r.id}')">تعديل</button><button class="btn btn-d btn-s" onclick="delSadir('${r.id}')">حذف</button>`:''}</div></td></tr>`; }).join('')
+    :`<tr><td colspan="15" class="empty">لا توجد كتب صادرة مطابقة</td></tr>`)+'</tbody>';
+  } else {
+    $('#tbl').innerHTML=`<thead><tr><th>العدد</th><th>رقم الكتاب الوارد</th><th>تاريخ الوارد</th><th>مرتبط بالصادر</th><th>الموضوع</th><th>الجهة</th><th>حالة الصادر</th><th>الملاحظات</th><th>📎</th><th></th></tr></thead><tbody>`+
+    (rows.length?rows.map(w=>{ const o=S.sadir.find(x=>x.id===w.outId);
+      return `<tr onclick="viewWarid('${w.id}')"><td class="num">${w.serial}</td><td class="bn">${esc(w.inBookNo||'—')}</td><td>${fmtDate(w.inDate)}</td>
+      <td class="bn" style="color:var(--p)">${esc(PFX+(o?o.bookNo:w.outBookNo))}</td>
+      <td class="trunc" title="${esc(w.subject||o?.subject)}">${esc(w.subject||o?.subject||'—')}</td><td>${esc(w.entity||o?.entity||'—')}</td>
+      <td>${o?`<span class="b ${statusCls(o.status)}">${esc(o.status)}</span>`:'<span class="muted">محذوف</span>'}</td>
+      <td class="trunc">${esc(w.notes||'—')}</td><td>${(w.files||[]).length||'—'}</td>
+      <td onclick="event.stopPropagation()"><div class="acts"><button class="btn btn-o btn-s" onclick="viewWarid('${w.id}')">عرض</button>${ed?`<button class="btn btn-o btn-s" onclick="formWarid(null,'${w.id}')">تعديل</button><button class="btn btn-d btn-s" onclick="delWarid('${w.id}')">حذف</button>`:''}</div></td></tr>`; }).join('')
+    :`<tr><td colspan="10" class="empty">لا توجد كتب واردة مطابقة</td></tr>`)+'</tbody>';
+  }
+  $('#pager').innerHTML = `<button class="btn btn-o btn-s" ${p<=1?'disabled':''} id="pPrev">→ السابق</button>
+     <span class="pi">صفحة ${p} من ${pages} · ${list.length} كتاب</span>
+     <button class="btn btn-o btn-s" ${p>=pages?'disabled':''} id="pNext">التالي ←</button>`;
+  $('#pPrev').onclick=()=>{ S.page[S.tab]--; renderTable(); window.scrollTo({top:$('.bar').offsetTop-10,behavior:'smooth'}); };
+  $('#pNext').onclick=()=>{ S.page[S.tab]++; renderTable(); window.scrollTo({top:$('.bar').offsetTop-10,behavior:'smooth'}); };
+}
+function fillDatalists(){
+  const u=k=>[...new Set(S.sadir.map(r=>r[k]).filter(Boolean))].map(v=>`<option value="${esc(v)}">`).join('');
+  $('#dlEntity').innerHTML=u('entity'); $('#dlOffice').innerHTML=u('office'); $('#dlResp').innerHTML=u('responsible'); $('#dlReq').innerHTML=u('requester');
+  $('#dlOut').innerHTML=[...S.sadir].sort((a,b)=>b.serial-a.serial).map(r=>`<option value="${esc(r.bookNo)}">${esc(r.subject)} — ${esc(r.entity)}</option>`).join('');
+}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{ S.tab=t.dataset.tab; render(); });
+$('#bAddS').onclick=()=>formSadir();
+$('#bAddW').onclick=()=>formWarid();
+
+/* ===================== المرفقات في النماذج ===================== */
+const PENDING=[]; let KEEP=[], REMOVED=[];
+function fileZone(){ return `<div class="drop" id="drop">📂 اضغط لاختيار ملفات أو اسحبها هنا (يمكن اختيار أكثر من ملف)<input type="file" id="finp" multiple hidden></div><ul class="flist" id="flist"></ul>`; }
+function bindFiles(){
+  const d=$('#drop'), inp=$('#finp');
+  d.onclick=()=>inp.click();
+  inp.onchange=()=>{ addPending(inp.files); inp.value=''; };
+  d.ondragover=e=>{e.preventDefault(); d.classList.add('ov2');}; d.ondragleave=()=>d.classList.remove('ov2');
+  d.ondrop=e=>{e.preventDefault(); d.classList.remove('ov2'); addPending(e.dataTransfer.files);};
+  drawFiles();
+}
+function addPending(fl){ for(const f of fl){ if(f.size>MAX_FILE){ toast(`«${esc(f.name)}» أكبر من 50MB`,'e'); continue;} PENDING.push(f);} drawFiles(); }
+function drawFiles(){
+  $('#flist').innerHTML = KEEP.map((m,i)=>`<li><span>📎</span><span class="nm">${esc(m.name)}</span><span class="sz">${fmtSize(m.size)} · محفوظ</span><button type="button" class="btn btn-d btn-s" onclick="REMOVED.push(KEEP.splice(${i},1)[0]);drawFiles()">إزالة</button></li>`).join('')
+   + PENDING.map((f,i)=>`<li><span>🆕</span><span class="nm">${esc(f.name)}</span><span class="sz">${fmtSize(f.size)}</span><button type="button" class="btn btn-d btn-s" onclick="PENDING.splice(${i},1);drawFiles()">إزالة</button></li>`).join('');
+}
+
+/* ===================== الكتاب الصادر ===================== */
+function formSadir(id){
+  const r = id ? S.sadir.find(x=>x.id===id) : null;
+  KEEP = r ? [...(r.files||[])] : []; REMOVED=[]; PENDING.length=0;
+  const next = Math.max(0,...S.sadir.map(x=>x.serial||0))+1;
+  const v = k => esc(r?.[k] ?? '');
+  openModal(r?`تعديل الكتاب الصادر — العدد ${r.serial}`:'إضافة كتاب صادر', `
+    <div class="serialbox"><span>رقم العدد ${r?'':'(يُولَّد تلقائياً عند الحفظ)'}</span><b>${r?r.serial:next}</b></div>
+    <div class="g2">
+      <div class="fld"><label>رقم الكتاب <span class="req">*</span></label><div class="pfx"><span>س . ر /</span><input id="f_bookNo" value="${v('bookNo')}" placeholder="${r?'':next}"></div><div class="hint">اتركه فارغاً ليأخذ رقم العدد تلقائياً</div></div>
+      <div class="fld"><label>تاريخ الكتاب <span class="req">*</span></label><input type="date" id="f_bookDate" value="${r?v('bookDate'):today()}"></div>
+      <div class="fld full"><label>الموضوع <span class="req">*</span></label><input id="f_subject" value="${v('subject')}"></div>
+      <div class="fld"><label>الجهة <span class="req">*</span></label><input id="f_entity" list="dlEntity" value="${v('entity')}"></div>
+      <div class="fld"><label>التصنيف <span class="req">*</span></label><select id="f_category">${opts(CATS,r?.category,'— اختر —')}</select></div>
+      <div class="fld"><label>اسم المكتب</label><input id="f_office" list="dlOffice" value="${v('office')}"></div>
+      <div class="fld"><label>اسم صاحب الطلب</label><input id="f_requester" list="dlReq" value="${v('requester')}"></div>
+      <div class="fld"><label>المسؤول عن المتابعة</label><input id="f_responsible" list="dlResp" value="${v('responsible')}"></div>
+      <div class="fld"><label>الحالة</label><select id="f_status">${opts(STATUSES,r?.status||'قيد الإجراء')}</select></div>
+      <div class="fld"><label>تاريخ الاستحقاق</label><input type="date" id="f_dueDate" value="${v('dueDate')}"></div>
+      <div class="fld"><label>أيام التأخير</label><input id="f_delay" disabled></div>
+      <div class="fld full"><label>الملاحظات</label><textarea id="f_notes">${v('notes')}</textarea></div>
+      <div class="fld full"><label>المرفقات ${tgCfg()?'<span class="hint">(تُحفظ على تلكرام)</span>':''}</label>${fileZone()}</div>
+    </div>`,
+    `<button class="btn btn-p" id="fSave">💾 حفظ</button><button class="btn btn-o" onclick="closeModal()">إلغاء</button>`);
+  bindFiles();
+  const upd=()=>{ const tmp={bookDate:$('#f_bookDate').value,status:$('#f_status').value}; const d=daysSince(tmp.bookDate);
+    $('#f_delay').value = tmp.status==='منجز'?'منجز': d==null?'':(d>LATE_DAYS?`متأخر ${d-LATE_DAYS} يوم (مضى ${d})`:`مضى ${d} من ${LATE_DAYS} يوم`); };
+  $('#f_bookDate').onchange=upd; $('#f_status').onchange=upd; upd();
+  $('#fSave').onclick=()=>saveSadir(r);
+}
+async function saveSadir(r){
+  const g=k=>$('#f_'+k).value.trim();
+  const data={ bookNo:g('bookNo'), bookDate:g('bookDate'), subject:g('subject'), entity:g('entity'), category:g('category'), office:g('office'),
+    requester:g('requester'), responsible:g('responsible'), status:g('status'), dueDate:g('dueDate'), notes:g('notes') };
+  const miss=[]; if(!data.bookDate)miss.push('تاريخ الكتاب'); if(!data.subject)miss.push('الموضوع'); if(!data.entity)miss.push('الجهة'); if(!data.category)miss.push('التصنيف');
+  if(miss.length) return toast('يرجى إكمال: '+miss.join('، '),'e');
+  if(data.bookNo && S.sadir.some(x=>x.bookNo===data.bookNo && x.id!==r?.id)){
+    if(!await confirmBox(`رقم الكتاب <b>${esc(PFX+data.bookNo)}</b> مستخدم مسبقاً. هل تريد الحفظ رغم ذلك؟`,'حفظ',false)) return;
+  }
+  const btn=$('#fSave'); btn.disabled=true; loading(true,'جاري الحفظ...');
+  try{
+    if(r){
+      const caption=`📤 كتاب صادر — العدد ${r.serial}\n${PFX}${data.bookNo||r.bookNo}\nالموضوع: ${data.subject}\nالجهة: ${data.entity}\nالتاريخ: ${fmtDate(data.bookDate)}`;
+      const nf=await uploadFiles(PENDING,caption); await deleteFiles(REMOVED);
+      if(!data.bookNo) data.bookNo=String(r.serial);
+      await DB.update('sadir',r.id,{...data,files:[...KEEP,...nf],updatedAt:Date.now(),updatedBy:S.user.username});
+      toast('تم تحديث الكتاب','s');
+    } else {
+      const serial=await DB.nextSerial('sadir');
+      if(!data.bookNo) data.bookNo=String(serial);
+      const caption=`📤 كتاب صادر — العدد ${serial}\n${PFX}${data.bookNo}\nالموضوع: ${data.subject}\nالجهة: ${data.entity}\nالتصنيف: ${data.category}\nالتاريخ: ${fmtDate(data.bookDate)}${data.requester?'\nصاحب الطلب: '+data.requester:''}`;
+      const nf=await uploadFiles(PENDING,caption);
+      await DB.add('sadir',{...data,serial,files:nf,createdAt:Date.now(),createdBy:S.user.username});
+      toast(`تم حفظ الكتاب — رقم العدد <b>${serial}</b>`,'s',5000);
+    }
+    closeModal();
+  }catch(e){ toast('فشل الحفظ: '+esc(e.message),'e',6000); btn.disabled=false; }
+  finally{ loading(false); }
+}
+function viewSadir(id){
+  const r=S.sadir.find(x=>x.id===id); if(!r) return;
+  const inc=S.warid.filter(w=>w.outId===id).sort((a,b)=>a.serial-b.serial);
+  const it=(k,v)=>`<div class="di"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  const ed=can();
+  openModal(`الكتاب الصادر ${esc(PFX+r.bookNo)}`, `
+    <div class="dl">
+      ${it('العدد',`<span class="num">${r.serial}</span>`)}${it('رقم الكتاب',esc(PFX+r.bookNo))}${it('تاريخ الكتاب',fmtDate(r.bookDate))}
+      ${it('الحالة',`<span class="b ${statusCls(r.status)}">${esc(r.status)}</span>`)}${it('أيام التأخير',delayCell(r))}${it('تاريخ الاستحقاق',fmtDate(r.dueDate))}
+      ${it('التصنيف',esc(r.category))}${it('الجهة',esc(r.entity))}${it('اسم المكتب',esc(r.office||'—'))}
+      ${it('اسم صاحب الطلب',esc(r.requester||'—'))}${it('المسؤول عن المتابعة',esc(r.responsible||'—'))}${it('أُضيف بواسطة',esc(r.createdBy||'—'))}
+    </div>
+    <div class="di" style="margin-top:10px">${'<div class="k">الموضوع</div><div class="v">'+esc(r.subject)+'</div>'}</div>
+    ${r.notes?`<div class="di" style="margin-top:10px"><div class="k">الملاحظات</div><div class="v" style="white-space:pre-wrap">${esc(r.notes)}</div></div>`:''}
+    <div class="sec">مرفقات الصادر</div>${filesHTML(r.files)}
+    <div class="sec">الكتب الواردة المرتبطة (${inc.length})</div>
+    ${inc.length?inc.map(w=>`<div class="inc"><div class="ih"><b>وارد عدد ${w.serial} — رقم ${esc(w.inBookNo||'—')}</b><span class="muted">${fmtDate(w.inDate)}</span></div>
+      <div class="muted" style="font-size:13px">الجهة: ${esc(w.entity||r.entity)}${w.subject&&w.subject!==r.subject?' · الموضوع: '+esc(w.subject):''}</div>
+      ${w.notes?`<div style="white-space:pre-wrap;margin:4px 0">${esc(w.notes)}</div>`:''}${filesHTML(w.files)}
+      ${ed?`<div style="margin-top:6px"><button class="btn btn-o btn-s" onclick="formWarid(null,'${w.id}')">تعديل الوارد</button></div>`:''}</div>`).join('')
+      :'<div class="muted">لا يوجد وارد مرتبط بهذا الكتاب بعد</div>'}`,
+    (ed?`<button class="btn btn-g" onclick="formWarid('${r.id}')">＋ إضافة وارد مرتبط</button><button class="btn btn-p" onclick="formSadir('${r.id}')">تعديل</button><button class="btn btn-d" onclick="delSadir('${r.id}')">حذف</button>`:'')
+    +`<button class="btn btn-o" onclick="window.print()">🖨 طباعة</button><button class="btn btn-o" onclick="closeModal()">إغلاق</button>`);
+}
+async function delSadir(id){
+  const r=S.sadir.find(x=>x.id===id); if(!r) return;
+  if(S.warid.some(w=>w.outId===id)) return toast('لا يمكن حذف كتاب صادر مرتبط به وارد — احذف الوارد أولاً','e',5000);
+  if(!await confirmBox(`هل تريد حذف الكتاب الصادر <b>${esc(PFX+r.bookNo)}</b> (العدد ${r.serial}) ومرفقاته نهائياً؟`,'حذف')) return;
+  loading(true,'جاري الحذف...');
+  try{ await deleteFiles(r.files); await DB.remove('sadir',id); closeModal(); toast('تم الحذف','s'); }catch(e){ toast(esc(e.message),'e'); } finally{ loading(false); }
+}
+
+/* ===================== الكتاب الوارد ===================== */
+function findOut(val){ val=String(val||'').replace(/س\s*\.\s*ر\s*\//,'').trim(); if(!val) return null; return S.sadir.find(x=>String(x.bookNo).trim()===val) || null; }
+function formWarid(outId, wid){
+  const w = wid ? S.warid.find(x=>x.id===wid) : null;
+  const o0 = S.sadir.find(x=>x.id===(w?w.outId:outId));
+  KEEP = w ? [...(w.files||[])] : []; REMOVED=[]; PENDING.length=0;
+  const next=Math.max(0,...S.warid.map(x=>x.serial||0))+1;
+  openModal(w?`تعديل الكتاب الوارد — العدد ${w.serial}`:'إضافة كتاب وارد', `
+    <div class="serialbox"><span>رقم عدد الوارد ${w?'':'(يُولَّد تلقائياً عند الحفظ)'}</span><b>${w?w.serial:next}</b></div>
+    <div class="fld"><label>رقم الكتاب الصادر المرتبط <span class="req">*</span></label><div class="pfx"><span>س . ر /</span><input id="w_out" list="dlOut" value="${esc(o0?o0.bookNo:'')}" placeholder="اكتب أو اختر رقم الكتاب الصادر" autocomplete="off"></div></div>
+    <div id="w_prev"></div>
+    <div class="g2">
+      <div class="fld"><label>رقم الكتاب الوارد</label><input id="w_inBookNo" value="${esc(w?.inBookNo||'')}"></div>
+      <div class="fld"><label>تاريخ الوارد</label><input type="date" id="w_inDate" value="${esc(w?.inDate||today())}"></div>
+      <div class="fld full"><label>الملاحظات</label><textarea id="w_notes">${esc(w?.notes||'')}</textarea></div>
+      <div class="fld full"><label>المرفقات ${tgCfg()?'<span class="hint">(تُحفظ على تلكرام)</span>':''}</label>${fileZone()}</div>
+      ${w?'':`<label class="chk full" style="padding-top:0"><input type="checkbox" id="w_done" checked> تحويل حالة الكتاب الصادر إلى «منجز»</label>`}
+    </div>`,
+    `<button class="btn btn-p" id="wSave">💾 حفظ الوارد</button><button class="btn btn-o" onclick="closeModal()">إلغاء</button>`);
+  bindFiles();
+  const prev=()=>{ const o=findOut($('#w_out').value);
+    $('#w_prev').innerHTML = !$('#w_out').value.trim() ? '' : o
+      ? `<div class="prev"><b>العدد ${o.serial} · ${esc(PFX+o.bookNo)}</b> · ${fmtDate(o.bookDate)} · <span class="b ${statusCls(o.status)}">${esc(o.status)}</span><br>الموضوع: ${esc(o.subject)}<br>الجهة: ${esc(o.entity)} · التصنيف: ${esc(o.category)}${o.requester?' · صاحب الطلب: '+esc(o.requester):''}${o.office?' · المكتب: '+esc(o.office):''}</div>`
+      : `<div class="prev bad">لا يوجد كتاب صادر بهذا الرقم</div>`; };
+  $('#w_out').addEventListener('input',prev); prev();
+  $('#wSave').onclick=()=>saveWarid(w);
+}
+async function saveWarid(w){
+  const o=findOut($('#w_out').value);
+  if(!o) return toast('يرجى إدخال رقم كتاب صادر صحيح لربط الوارد به','e');
+  const data={ outId:o.id, outBookNo:o.bookNo, inBookNo:$('#w_inBookNo').value.trim(), inDate:$('#w_inDate').value, notes:$('#w_notes').value.trim(), entity:o.entity, subject:o.subject };
+  const markDone = !w && $('#w_done')?.checked;
+  const btn=$('#wSave'); btn.disabled=true; loading(true,'جاري الحفظ...');
+  try{
+    if(w){
+      const nf=await uploadFiles(PENDING,`📥 كتاب وارد — العدد ${w.serial}\nرقم الوارد: ${data.inBookNo||'—'}\nرداً على: ${PFX}${o.bookNo}\nالموضوع: ${o.subject}`);
+      await deleteFiles(REMOVED);
+      await DB.update('warid',w.id,{...data,files:[...KEEP,...nf],updatedAt:Date.now(),updatedBy:S.user.username});
+      toast('تم تحديث الوارد','s');
+    } else {
+      const serial=await DB.nextSerial('warid');
+      const nf=await uploadFiles(PENDING,`📥 كتاب وارد — العدد ${serial}\nرقم الوارد: ${data.inBookNo||'—'}\nرداً على: ${PFX}${o.bookNo}\nالموضوع: ${o.subject}\nالجهة: ${o.entity}\nالتاريخ: ${fmtDate(data.inDate)}`);
+      await DB.add('warid',{...data,serial,files:nf,createdAt:Date.now(),createdBy:S.user.username});
+      if(markDone && o.status!=='منجز') await DB.update('sadir',o.id,{status:'منجز',updatedAt:Date.now(),updatedBy:S.user.username});
+      toast(`تم حفظ الوارد — رقم العدد <b>${serial}</b> ومرتبط بـ ${esc(PFX+o.bookNo)}`,'s',5000);
+    }
+    closeModal();
+  }catch(e){ toast('فشل الحفظ: '+esc(e.message),'e',6000); btn.disabled=false; }
+  finally{ loading(false); }
+}
+function viewWarid(id){
+  const w=S.warid.find(x=>x.id===id); if(!w) return;
+  const o=S.sadir.find(x=>x.id===w.outId);
+  const it=(k,v)=>`<div class="di"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  const ed=can();
+  openModal(`الكتاب الوارد — العدد ${w.serial}`, `
+    <div class="dl">${it('عدد الوارد',`<span class="num">${w.serial}</span>`)}${it('رقم الكتاب الوارد',esc(w.inBookNo||'—'))}${it('تاريخ الوارد',fmtDate(w.inDate))}${it('أُضيف بواسطة',esc(w.createdBy||'—'))}</div>
+    ${w.notes?`<div class="di" style="margin-top:10px"><div class="k">الملاحظات</div><div class="v" style="white-space:pre-wrap">${esc(w.notes)}</div></div>`:''}
+    <div class="sec">مرفقات الوارد</div>${filesHTML(w.files)}
+    <div class="sec">الكتاب الصادر المرتبط</div>
+    ${o?`<div class="dl">${it('العدد',o.serial)}${it('رقم الكتاب',esc(PFX+o.bookNo))}${it('تاريخ الكتاب',fmtDate(o.bookDate))}${it('الحالة',`<span class="b ${statusCls(o.status)}">${esc(o.status)}</span>`)}
+      ${it('الجهة',esc(o.entity))}${it('التصنيف',esc(o.category))}${it('صاحب الطلب',esc(o.requester||'—'))}${it('المسؤول',esc(o.responsible||'—'))}</div>
+      <div class="di" style="margin-top:10px"><div class="k">الموضوع</div><div class="v">${esc(o.subject)}</div></div>
+      <div style="margin-top:10px"><button class="btn btn-o btn-s" onclick="viewSadir('${o.id}')">عرض الصادر كاملاً مع كل الوارد ←</button></div>`
+      :`<div class="muted">الكتاب الصادر (${esc(PFX+w.outBookNo)}) غير موجود</div>`}`,
+    (ed?`<button class="btn btn-p" onclick="formWarid(null,'${w.id}')">تعديل</button><button class="btn btn-d" onclick="delWarid('${w.id}')">حذف</button>`:'')+`<button class="btn btn-o" onclick="closeModal()">إغلاق</button>`);
+}
+async function delWarid(id){
+  const w=S.warid.find(x=>x.id===id); if(!w) return;
+  if(!await confirmBox(`هل تريد حذف الكتاب الوارد (العدد ${w.serial}) ومرفقاته نهائياً؟`,'حذف')) return;
+  loading(true,'جاري الحذف...');
+  try{ await deleteFiles(w.files); await DB.remove('warid',id); closeModal(); toast('تم الحذف','s'); }catch(e){ toast(esc(e.message),'e'); } finally{ loading(false); }
+}
+
+/* ===================== تصدير Excel ===================== */
+$('#bXls').onclick=()=>{
+  if(!window.XLSX) return toast('مكتبة Excel لم تُحمَّل — تأكد من الاتصال بالإنترنت','e');
+  const wb=XLSX.utils.book_new(); wb.Workbook={Views:[{RTL:true}]};
+  let rows, name;
+  if(S.tab==='sadir'){
+    rows=filterSadir().map(r=>{ const inc=S.warid.filter(w=>w.outId===r.id); const d=daysSince(r.bookDate);
+      return {'العدد':r.serial,'رقم الكتاب':PFX+r.bookNo,'تاريخ الكتاب':fmtDate(r.bookDate),'الموضوع':r.subject,'الجهة':r.entity,'التصنيف':r.category,'اسم المكتب':r.office||'','اسم صاحب الطلب':r.requester||'','المسؤول عن المتابعة':r.responsible||'','الحالة':r.status,'تاريخ الاستحقاق':fmtDate(r.dueDate),'الأيام المنقضية':d??'','متأخر':isLate(r)?`نعم (${d-LATE_DAYS} يوم)`:'لا','عدد الوارد':inc.length,'الكتب الواردة المرتبطة':inc.map(w=>`${w.inBookNo||'عدد '+w.serial} (${fmtDate(w.inDate)})`).join(' ، '),'عدد المرفقات':(r.files||[]).length,'الملاحظات':r.notes||''}; });
+    name='الصادر';
+  } else {
+    rows=filterWarid().map(w=>{ const o=S.sadir.find(x=>x.id===w.outId)||{};
+      return {'العدد':w.serial,'رقم الكتاب الوارد':w.inBookNo||'','تاريخ الوارد':fmtDate(w.inDate),'رقم الكتاب الصادر':PFX+(o.bookNo||w.outBookNo),'عدد الصادر':o.serial||'','الموضوع':o.subject||w.subject||'','الجهة':o.entity||w.entity||'','التصنيف':o.category||'','صاحب الطلب':o.requester||'','حالة الصادر':o.status||'','عدد المرفقات':(w.files||[]).length,'الملاحظات':w.notes||''}; });
+    name='الوارد';
+  }
+  if(!rows.length) return toast('لا توجد بيانات للتصدير','w');
+  const ws=XLSX.utils.json_to_sheet(rows);
+  ws['!cols']=Object.keys(rows[0]).map(k=>({wch:Math.min(45,Math.max(k.length+4,...rows.map(r=>String(r[k]).length+2)))}));
+  XLSX.utils.book_append_sheet(wb,ws,name);
+  saveBlob(new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),`${name}_${today()}.xlsx`);
+  toast(`تم تصدير ${rows.length} كتاب`,'s');
+};
+
+/* ===================== المستخدمون ===================== */
+$('#bUsers').onclick=usersModal;
+function usersModal(){
+  const rows=[...S.users].sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).map(u=>`<tr><td><b>${esc(u.username)}</b></td><td>${esc(u.name||'')}</td>
+    <td><select onchange="setRole('${u.id}',this.value)" ${u.id===S.user.id?'disabled':''}>${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${u.role===k?'selected':''}>${v}</option>`).join('')}</select></td>
+    <td>${u.active===false?'<span class="b b-late">موقوف</span>':'<span class="b b-done">فعّال</span>'}</td>
+    <td><div class="acts"><button class="btn btn-o btn-s" onclick="resetPass('${u.id}')">كلمة مرور</button>${u.id!==S.user.id?`<button class="btn btn-o btn-s" onclick="toggleUser('${u.id}')">${u.active===false?'تفعيل':'إيقاف'}</button><button class="btn btn-d btn-s" onclick="delUser('${u.id}')">حذف</button>`:''}</div></td></tr>`).join('');
+  openModal('إدارة المستخدمين',`
+    <div class="tw" style="box-shadow:none;border:1px solid var(--bd)"><table class="utbl"><thead><tr><th>اسم المستخدم</th><th>الاسم</th><th>الصلاحية</th><th>الحالة</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="sec">إضافة مستخدم جديد</div>
+    <div class="g2">
+      <div class="fld"><label>اسم المستخدم (بالإنكليزي)</label><input id="u_user" autocomplete="off"></div>
+      <div class="fld"><label>الاسم الكامل</label><input id="u_name"></div>
+      <div class="fld"><label>كلمة المرور</label><input id="u_pass" type="text" autocomplete="off"></div>
+      <div class="fld"><label>الصلاحية</label><select id="u_role"><option value="viewer">اطلاع (عرض وبحث وتصدير فقط)</option><option value="editor">محرر (إضافة وتعديل وحذف)</option><option value="admin">مدير النظام (+ إدارة المستخدمين)</option></select></div>
+    </div>`,
+    `<button class="btn btn-p" onclick="addUser()">＋ إضافة المستخدم</button><button class="btn btn-o" onclick="closeModal()">إغلاق</button>`);
+}
+async function addUser(){
+  const username=$('#u_user').value.trim().toLowerCase(), name=$('#u_name').value.trim(), pass=$('#u_pass').value, role=$('#u_role').value;
+  if(!/^[a-z0-9._-]{3,}$/.test(username)) return toast('اسم المستخدم: 3 أحرف إنكليزية أو أرقام على الأقل','e');
+  if(pass.length<4) return toast('كلمة المرور 4 أحرف على الأقل','e');
+  if(S.users.some(u=>u.username===username)) return toast('اسم المستخدم موجود مسبقاً','e');
+  await DB.add('users',{username,name,role,pass:await hash(pass),active:true,createdAt:Date.now()});
+  toast('تمت إضافة المستخدم','s'); setTimeout(usersModal,150);
+}
+async function setRole(id,role){ await DB.update('users',id,{role}); toast('تم تغيير الصلاحية','s'); }
+async function toggleUser(id){ const u=S.users.find(x=>x.id===id); await DB.update('users',id,{active:u.active===false}); setTimeout(usersModal,150); }
+async function delUser(id){ const u=S.users.find(x=>x.id===id); if(!await confirmBox(`حذف المستخدم <b>${esc(u.username)}</b>؟`,'حذف')) return; await DB.remove('users',id); setTimeout(usersModal,150); }
+async function resetPass(id){
+  const u=S.users.find(x=>x.id===id);
+  $('#cmodal').innerHTML=`<div class="ov" style="z-index:70"><div class="md sm"><div class="mh"><h3>كلمة مرور جديدة — ${esc(u.username)}</h3></div><div class="mb"><div class="fld"><input id="rp" type="text" autocomplete="off"></div></div><div class="mf"><button class="btn btn-p" id="rpOk">حفظ</button><button class="btn btn-o" onclick="$('#cmodal').innerHTML=''">إلغاء</button></div></div></div>`;
+  $('#rpOk').onclick=async()=>{ const p=$('#rp').value; if(p.length<4) return toast('4 أحرف على الأقل','e'); await DB.update('users',id,{pass:await hash(p)}); $('#cmodal').innerHTML=''; toast('تم تغيير كلمة المرور','s'); };
+}
+$('#bPass').onclick=()=>{
+  openModal('تغيير كلمة المرور',`<div class="fld"><label>كلمة المرور الحالية</label><input id="cp0" type="password"></div><div class="fld"><label>كلمة المرور الجديدة</label><input id="cp1" type="password"></div><div class="fld"><label>تأكيد كلمة المرور الجديدة</label><input id="cp2" type="password"></div>`,
+   `<button class="btn btn-p" id="cpOk">حفظ</button><button class="btn btn-o" onclick="closeModal()">إلغاء</button>`,'sm');
+  $('#cpOk').onclick=async()=>{
+    const me=S.users.find(u=>u.id===S.user.id);
+    if(await hash($('#cp0').value)!==me.pass) return toast('كلمة المرور الحالية غير صحيحة','e');
+    if($('#cp1').value.length<4) return toast('4 أحرف على الأقل','e');
+    if($('#cp1').value!==$('#cp2').value) return toast('كلمتا المرور غير متطابقتين','e');
+    await DB.update('users',me.id,{pass:await hash($('#cp1').value)}); closeModal(); toast('تم تغيير كلمة المرور','s');
+  };
+};
+
+/* ===================== إعدادات تلكرام ===================== */
+$('#bSettings').onclick=()=>{
+  const st=S.settings||{}, fixed=!!TELEGRAM.botToken;
+  openModal('إعدادات تلكرام لحفظ المرفقات',`
+    ${fixed?'<div class="prev">الإعدادات مثبّتة داخل ملف التطبيق (TELEGRAM).</div>':''}
+    <div class="fld"><label>Bot Token</label><input id="tg_tok" dir="ltr" value="${esc(fixed?TELEGRAM.botToken:st.botToken||'')}" ${fixed?'disabled':''} placeholder="123456:ABC-DEF..."></div>
+    <div class="fld"><label>Chat ID (القناة أو المجموعة)</label><input id="tg_chat" dir="ltr" value="${esc(fixed?TELEGRAM.chatId:st.chatId||'')}" ${fixed?'disabled':''} placeholder="-100xxxxxxxxxx"></div>
+    <div class="hint" style="line-height:1.9">1) أنشئ بوت من ‎@BotFather‎ وانسخ الـ Token.<br>2) أنشئ قناة خاصة وأضف البوت مشرفاً فيها.<br>3) ضع معرّف القناة (يبدأ بـ ‎-100‎) ثم اضغط «اختبار».<br>كل مرفق يُرسل إلى القناة مع وصف الكتاب (العدد، الرقم، الموضوع، الجهة).</div>`,
+    `${fixed?'':'<button class="btn btn-p" id="tgSave">حفظ</button>'}<button class="btn btn-o" id="tgTest">اختبار الاتصال</button><button class="btn btn-o" onclick="closeModal()">إغلاق</button>`,'sm');
+  $('#tgTest').onclick=async()=>{
+    const tok=$('#tg_tok').value.trim(), chat=$('#tg_chat').value.trim();
+    try{ const r=await fetch(`https://api.telegram.org/bot${tok}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chat,text:'✅ تم ربط نظام شعبة الصادر والوارد بنجاح'})}); const j=await r.json();
+      j.ok?toast('نجح الاتصال — تحقق من القناة','s'):toast('فشل: '+esc(j.description),'e',6000); }catch(e){ toast('تعذر الاتصال بتلكرام: '+esc(e.message),'e'); }
+  };
+  if($('#tgSave')) $('#tgSave').onclick=async()=>{ await DB.set('meta','settings',{botToken:$('#tg_tok').value.trim(),chatId:$('#tg_chat').value.trim()}); toast('تم حفظ الإعدادات','s'); closeModal(); };
+};
+
+/* ===================== التشغيل ===================== */
+(async function boot(){
+  if(DB.mode==='local') $('#demoNote').classList.remove('hidden');
+  try{ await DB.init(); }catch(e){ $('#lerr').textContent='تعذر الاتصال بقاعدة البيانات: '+e.message; return; }
+  DB.subscribe('users', async list=>{
+    S.users=list;
+    if(!list.length && !S.creatingAdmin){ S.creatingAdmin=true; await DB.set('users','admin',{username:'admin',name:'مدير النظام',role:'admin',pass:await hash('123456'),active:true,createdAt:Date.now()}); return; }
+    S.ready.users=true;
+    if(S.user){ const me=list.find(u=>u.id===S.user.id); if(!me||me.active===false) return $('#bOut').click(); S.user=me; }
+    else { const sid=ss('sw_uid'); const me=sid&&list.find(u=>u.id===sid&&u.active!==false); if(me) enter(me); }
+  });
+  DB.subscribe('sadir', list=>{ S.sadir=list; render(); clearTimeout(S.lt); S.lt=setTimeout(lateAlert,1200); });
+  DB.subscribe('warid', list=>{ S.warid=list; render(); });
+  DB.subscribe('meta', list=>{ S.settings=list.find(x=>x.id==='settings')||{}; });
+})();
+</script>
+</body>
+</html>
