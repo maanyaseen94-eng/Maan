@@ -12,10 +12,8 @@ a{color:var(--green2)}
 .wrap{max-width:760px;margin:0 auto;padding:0 16px}
 
 /* رأس */
-.hero{color:#fff;padding:30px 0 78px;position:relative;overflow:hidden;
-  background:url(gold-lines.svg) center/100% 100% no-repeat,url(waves.svg) center/100% 100% no-repeat,
-  radial-gradient(120% 90% at 50% 45%,#8a2440 0%,#6e1a2f 45%,#4a0f1f 100%)}
-.hero::after{content:"";position:absolute;inset:auto -10% -60px -10%;height:120px;background:var(--bg);border-radius:50% 50% 0 0;box-shadow:0 -2px 0 rgba(214,176,74,.55)}
+.hero{color:#fff;padding:40px 0 84px;position:relative;overflow:hidden;
+  background:url(hero-bg.svg) center/100% 100% no-repeat,#5a1426}
 .hero .wrap{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;position:relative;z-index:1}
 .hero img{width:112px;height:112px;flex:none;border-radius:50%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
 /* الاسم والصفة بخط الفورمة الرسمية (صورة الخط نفسه) بالأبيض */
